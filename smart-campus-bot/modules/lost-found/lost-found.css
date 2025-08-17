@@ -57,6 +57,32 @@ main {
     cursor: pointer;
 }
 
+.file-upload-label {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: var(--light-text-color);
+}
+
+.search-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.search-controls input, .search-controls select {
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    border-radius: 5px;
+    color: var(--text-color);
+}
+
+.search-controls input {
+    flex-grow: 1;
+}
+
 #item-list, #admin-item-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -68,12 +94,165 @@ main {
     border: 1px solid var(--accent-color);
     border-radius: 10px;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
-.item-card img {
-    max-width: 100%;
-    border-radius: 5px;
+.card-image-container {
+    height: 150px;
+    background-color: #0c102c;
     margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.card-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-image {
+    color: var(--light-text-color);
+    font-style: italic;
+}
+
+.item-meta {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    color: var(--background-color);
+    text-transform: capitalize;
+}
+
+.type-lost { background-color: var(--error-color); color: white; }
+.type-found { background-color: var(--success-color); }
+.category-electronics { background-color: #00d4ff; }
+.category-books { background-color: #f0932b; }
+.category-stationery { background-color: #4cd137; }
+.category-clothing { background-color: #9c88ff; }
+.category-other { background-color: #7f8fa6; }
+
+.contact-btn {
+    margin-top: auto; /* Pushes the button to the bottom of the card */
+    padding: 10px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.contact-btn:hover {
+    background: var(--accent-color);
+    color: var(--background-color);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: var(--background-color);
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid var(--accent-color);
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.modal-overlay.visible .modal-content {
+    transform: scale(1);
+}
+
+.modal-content .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 2em;
+    cursor: pointer;
+}
+
+#contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#contact-form textarea, #contact-form input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.table-wrapper {
+    max-height: 500px; /* More space for the admin table */
+    overflow-y: auto;
+    border: 1px solid var(--accent-color);
+    border-radius: 5px;
+}
+
+#admin-items-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#admin-items-table th, #admin-items-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    text-align: left;
+    white-space: nowrap;
+}
+
+#admin-items-table th {
+    background-color: rgba(10, 14, 39, 0.9);
+    position: sticky;
+    top: 0;
+}
+
+#admin-items-table tr.flagged {
+    background-color: rgba(232, 65, 24, 0.15); /* Corresponds to flag-btn color */
+    border-left: 3px solid #e84118;
+}
+
+#admin-items-table tr.match-highlight {
+    background-color: rgba(0, 212, 255, 0.15);
+    border-left: 3px solid var(--accent-color);
 }
 
 .item-card h3 {
@@ -109,6 +288,21 @@ main {
     text-align: center;
     margin-top: 0;
     color: var(--accent-color);
+    margin-bottom: 20px;
+}
+
+.charts-grid-local {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.chart-container-local h4 {
+    text-align: center;
+    font-weight: 400;
+    color: var(--light-text-color);
+    margin-top: 0;
+    margin-bottom: 10px;
 }
 
 .status-badge {
@@ -144,6 +338,7 @@ main {
 
 .approve-btn { background-color: #4cd137; }
 .resolve-btn { background-color: #7f8fa6; }
+.flag-btn { background-color: #e84118; } /* A different shade of red/orange */
 /* The .delete-btn style is already in the file, but let's ensure it's consistent */
 .delete-btn {
     background-color: var(--error-color);
