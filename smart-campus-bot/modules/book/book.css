@@ -67,3 +67,58 @@ main {
     border-radius: 10px;
     border: 1px solid var(--accent-color);
 }
+
+/* Admin View Styles */
+.admin-section {
+    background: rgba(10, 14, 39, 0.8);
+    border: 1px solid var(--accent-color);
+    padding: 20px 30px;
+    border-radius: 10px;
+    margin-bottom: 40px;
+}
+
+.admin-section h2 {
+    margin-top: 0;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+#api-key-form {
+    display: flex;
+    gap: 15px;
+}
+
+#api-key-input {
+    flex-grow: 1;
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--text-color);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.table-wrapper {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#summaries-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#summaries-table th, #summaries-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    text-align: left;
+}
+
+#summaries-table .action-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+    background-color: var(--error-color);
+}

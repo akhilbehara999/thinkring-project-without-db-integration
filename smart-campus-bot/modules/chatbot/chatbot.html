@@ -30,12 +30,42 @@
         </div>
 
         <div id="admin-view" style="display: none;">
-            <h2>Train Chatbot</h2>
-            <form id="train-form">
-                <input type="text" id="new-question" placeholder="New Question" required>
-                <textarea id="new-answer" placeholder="Answer for the question" required></textarea>
-                <button type="submit">Add to Knowledge Base</button>
-            </form>
+
+            <div class="admin-section">
+                <h2>Knowledge Base Management</h2>
+                <p>Add, edit, or delete the questions and answers the chatbot uses.</p>
+                <form id="train-form">
+                    <input type="text" id="new-question" placeholder="Question or Keyword" required>
+                    <textarea id="new-answer" placeholder="Bot's Answer" required></textarea>
+                    <button type="submit">Add/Update Q&A</button>
+                </form>
+                <div class="table-wrapper">
+                    <table id="kb-table">
+                        <thead>
+                            <tr>
+                                <th>Question/Keyword</th>
+                                <th>Answer</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Q&A pairs will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h2>Upload Knowledge Document</h2>
+                <p>Upload a .txt file to suggest new Q&A pairs.</p>
+                <input type="file" id="doc-upload" accept=".txt">
+            </div>
+
+            <div class="admin-section">
+                <h2>Conversation Analytics</h2>
+                <canvas id="chatbot-analytics-chart" width="400" height="200"></canvas>
+            </div>
+
         </div>
     </main>
 

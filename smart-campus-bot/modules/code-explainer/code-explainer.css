@@ -80,3 +80,48 @@ main {
     white-space: pre-wrap;
     font-family: 'Courier New', Courier, monospace;
 }
+
+/* Admin View Styles */
+.admin-section {
+    background: rgba(10, 14, 39, 0.8);
+    border: 1px solid var(--accent-color);
+    padding: 20px 30px;
+    border-radius: 10px;
+    margin-bottom: 40px;
+}
+
+.admin-section h2 {
+    margin-top: 0;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+#template-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#template-form input, #template-form select, #template-form textarea {
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--text-color);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#template-form textarea {
+    height: 150px;
+    font-family: 'Courier New', Courier, monospace;
+    resize: vertical;
+}
+
+#template-form button {
+    padding: 10px 20px;
+    background: var(--accent-color);
+    border: none;
+    color: var(--background-color);
+    cursor: pointer;
+    border-radius: 5px;
+}

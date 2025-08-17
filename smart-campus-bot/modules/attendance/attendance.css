@@ -58,3 +58,60 @@ main {
     padding: 20px;
     border-radius: 10px;
 }
+
+#consolidated-records {
+    margin-top: 40px;
+}
+
+.table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#record-search {
+    width: 60%;
+}
+
+#export-csv-btn {
+    padding: 10px 20px;
+    background: var(--success-color);
+    border: none;
+    border-radius: 5px;
+    color: var(--background-color);
+    cursor: pointer;
+}
+
+.table-wrapper {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid var(--accent-color);
+    border-radius: 5px;
+}
+
+#attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#attendance-table th, #attendance-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    text-align: left;
+}
+
+#attendance-table th {
+    background-color: rgba(10, 14, 39, 0.9);
+    position: sticky;
+    top: 0;
+}
+
+.status-select {
+    width: 100%;
+    padding: 8px;
+    background: #0c102c;
+    border: 1px solid var(--accent-color);
+    color: var(--text-color);
+    border-radius: 5px;
+}

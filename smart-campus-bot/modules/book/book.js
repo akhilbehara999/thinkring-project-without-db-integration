@@ -1,9 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Elements ---
+    const userView = document.getElementById('user-view');
+    const adminView = document.getElementById('admin-view');
     const textInput = document.getElementById('text-input');
     const summarizeBtn = document.getElementById('summarize-btn');
     const expandBtn = document.getElementById('expand-btn');
     const speakBtn = document.getElementById('speak-btn');
     const stopBtn = document.getElementById('stop-btn');
+    const saveBtn = document.getElementById('save-btn');
     const statusDiv = document.getElementById('status');
     const outputTextDiv = document.getElementById('output-text');
 
@@ -54,5 +58,92 @@ document.addEventListener('DOMContentLoaded', () => {
     stopBtn.addEventListener('click', () => {
         speechSynthesis.cancel();
         statusDiv.textContent = '';
+    });
+
+    // --- Admin View Logic ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAdminView = urlParams.get('view') === 'admin';
+
+    if (isAdminView) {
+        userView.style.display = 'none';
+        adminView.style.display = 'block';
+        document.querySelector('.back-link').href = '../../admin.html';
+        document.querySelector('h1').textContent = 'Manage Book Tools';
+        renderSummariesTable();
+        loadApiKey();
+    }
+
+    function renderSummariesTable() {
+        const summariesTableBody = document.querySelector('#summaries-table tbody');
+        if (!summariesTableBody) return;
+
+        let savedSummaries = JSON.parse(localStorage.getItem('saved-summaries')) || [];
+        summariesTableBody.innerHTML = '';
+
+        savedSummaries.forEach(summary => {
+            const row = summariesTableBody.insertRow();
+            row.innerHTML = `
+                <td>${sanitizeInput(summary.username)}</td>
+                <td>${sanitizeInput(summary.text.substring(0, 50))}...</td>
+                <td>${summary.savedAt}</td>
+                <td><button class="action-btn delete-btn" data-id="${summary.id}">Delete</button></td>
+            `;
+        });
+    }
+
+
+    // --- API Key Logic ---
+    const apiKeyForm = document.getElementById('api-key-form');
+
+    if (apiKeyForm) {
+        apiKeyForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const apiKey = document.getElementById('api-key-input').value;
+            localStorage.setItem('book-tools-api-key', apiKey);
+            alert('API Key saved!');
+        });
+    }
+
+    function loadApiKey() {
+        const apiKey = localStorage.getItem('book-tools-api-key');
+        if (apiKey) {
+            document.getElementById('api-key-input').value = apiKey;
+        }
+    }
+
+    // --- Delete Saved Summary Logic ---
+    const summariesTableBody = document.querySelector('#summaries-table tbody');
+    if (summariesTableBody) {
+        summariesTableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-btn')) {
+                const summaryId = parseInt(e.target.dataset.id);
+                let savedSummaries = JSON.parse(localStorage.getItem('saved-summaries')) || [];
+                savedSummaries = savedSummaries.filter(s => s.id !== summaryId);
+                localStorage.setItem('saved-summaries', JSON.stringify(savedSummaries));
+                renderSummariesTable();
+            }
+        });
+    }
+
+
+    saveBtn.addEventListener('click', () => {
+        const outputText = outputTextDiv.textContent;
+        if (outputText.trim() === '') {
+            alert('There is no output to save.');
+            return;
+        }
+
+        const savedSummaries = JSON.parse(localStorage.getItem('saved-summaries')) || [];
+        const username = localStorage.getItem('username') || 'anonymous';
+
+        savedSummaries.push({
+            id: Date.now(),
+            username: username,
+            text: outputText,
+            savedAt: new Date().toLocaleString()
+        });
+
+        localStorage.setItem('saved-summaries', JSON.stringify(savedSummaries));
+        alert('Output saved successfully!');
     });
 });

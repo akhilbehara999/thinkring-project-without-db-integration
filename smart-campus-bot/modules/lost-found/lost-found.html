@@ -26,7 +26,7 @@
                 <form id="report-form">
                     <input type="text" id="item-name" placeholder="Item Name" required>
                     <textarea id="item-description" placeholder="Description" required></textarea>
-                    <select id="item-status" required>
+                    <select id="item-type" required>
                         <option value="lost">I Lost Something</option>
                         <option value="found">I Found Something</option>
                     </select>
@@ -44,6 +44,10 @@
 
         <!-- Admin View -->
         <div id="admin-view" style="display: none;">
+            <div class="analytics-panel">
+                <h3>Item Analytics</h3>
+                <canvas id="lost-found-admin-chart" width="400" height="200"></canvas>
+            </div>
             <h2>Manage Reported Items</h2>
             <div id="admin-item-list"></div>
         </div>

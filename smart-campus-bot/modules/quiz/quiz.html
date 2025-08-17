@@ -51,29 +51,45 @@
         </div>
 
         <div id="admin-view" style="display: none;">
-            <h2>Manage Quiz Questions</h2>
-            <form id="add-question-form">
-                <input type="text" id="question-text" placeholder="Question" required>
-                <input type="text" id="correct-answer" placeholder="Correct Answer" required>
-                <input type="text" id="incorrect-answer-1" placeholder="Incorrect Answer 1" required>
-                <input type="text" id="incorrect-answer-2" placeholder="Incorrect Answer 2" required>
-                <input type="text" id="incorrect-answer-3" placeholder="Incorrect Answer 3" required>
-                <button type="submit">Add Question</button>
-            </form>
-            <div id="results-table-container">
-                <h3>Quiz Results</h3>
-                <table id="results-table">
+            <div class="admin-section">
+                <h2>Add / Edit Question</h2>
+                <form id="add-question-form">
+                    <input type="hidden" id="question-id"> <!-- For editing -->
+                    <input type="text" id="question-text" placeholder="Question" required>
+                    <input type="text" id="correct-answer" placeholder="Correct Answer" required>
+                    <input type="text" id="incorrect-answer-1" placeholder="Incorrect Answer 1" required>
+                    <input type="text" id="incorrect-answer-2" placeholder="Incorrect Answer 2" required>
+                    <input type="text" id="incorrect-answer-3" placeholder="Incorrect Answer 3" required>
+                    <button type="submit" id="form-submit-btn">Add Question</button>
+                    <button type="button" id="form-cancel-btn" style="display: none;">Cancel Edit</button>
+                </form>
+            </div>
+
+            <div class="admin-section">
+                <h2>Local Questions</h2>
+                <table id="questions-table">
                     <thead>
                         <tr>
-                            <th>User</th>
-                            <th>Score</th>
-                            <th>Date</th>
+                            <th>Question</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Results will be populated by JS -->
+                        <!-- Questions will be populated here -->
                     </tbody>
                 </table>
+            </div>
+
+            <div class="admin-section">
+                <h2>Upload Questions (JSON)</h2>
+                <input type="file" id="json-upload" accept=".json">
+                <button id="upload-btn">Upload</button>
+            </div>
+
+            <div class="admin-section">
+                <h2>Quiz Analytics</h2>
+                <p>Average Score: <strong id="avg-score">--%</strong></p>
+                <canvas id="quiz-analytics-chart" width="400" height="200"></canvas>
             </div>
         </div>
 

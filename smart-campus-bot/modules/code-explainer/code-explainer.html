@@ -19,9 +19,10 @@
     </header>
 
     <main>
-        <div class="explainer-container">
-            <select id="language-select">
-                <option value="javascript">JavaScript</option>
+        <div id="user-view">
+            <div class="explainer-container">
+                <select id="language-select">
+                    <option value="javascript">JavaScript</option>
                 <option value="python">Python</option>
                 <option value="java">Java</option>
                 <option value="c">C</option>
@@ -36,6 +37,31 @@
                 <pre><code id="result-output"></code></pre>
             </div>
         </div>
+    </div>
+
+    <div id="admin-view" style="display: none;">
+
+        <div class="admin-section">
+            <h2>Upload Code Template</h2>
+            <form id="template-form">
+                <input type="text" id="template-title" placeholder="Template Title (e.g., 'Hello World')" required>
+                <select id="template-language" required>
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                    <option value="c">C</option>
+                </select>
+                <textarea id="template-code" placeholder="Paste the template code here..." required></textarea>
+                <button type="submit">Save Template</button>
+            </form>
+        </div>
+
+        <div class="admin-section">
+            <h2>Language Usage Analytics</h2>
+            <canvas id="language-chart" width="400" height="200"></canvas>
+        </div>
+
+    </div>
     </main>
 
     <script src="../../js/utils.js"></script>

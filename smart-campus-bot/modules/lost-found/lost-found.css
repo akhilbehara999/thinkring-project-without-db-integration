@@ -97,6 +97,64 @@ main {
     box-shadow: 0 0 10px var(--error-color) !important;
 }
 
+.analytics-panel {
+    background: rgba(10, 14, 39, 0.8);
+    border: 1px solid var(--accent-color);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 40px;
+}
+
+.analytics-panel h3 {
+    text-align: center;
+    margin-top: 0;
+    color: var(--accent-color);
+}
+
+.status-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    color: white;
+    text-transform: capitalize;
+}
+
+.status-pending { background-color: #f0932b; } /* Orange */
+.status-approved { background-color: #4cd137; } /* Green */
+.status-resolved { background-color: #7f8fa6; } /* Grey */
+
+.admin-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+    transition: transform 0.2s;
+}
+
+.action-btn:hover {
+    transform: scale(1.05);
+}
+
+.approve-btn { background-color: #4cd137; }
+.resolve-btn { background-color: #7f8fa6; }
+/* The .delete-btn style is already in the file, but let's ensure it's consistent */
+.delete-btn {
+    background-color: var(--error-color);
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+    transition: transform 0.2s;
+}
+
 .empty-message {
     color: var(--light-text-color);
     text-align: center;

@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Elements ---
+    const userView = document.getElementById('user-view');
+    const adminView = document.getElementById('admin-view');
     const languageSelect = document.getElementById('language-select');
     const codeInput = document.getElementById('code-input');
     const analyzeBtn = document.getElementById('analyze-btn');
@@ -46,9 +49,44 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- End of Placeholder Data ---
 
 
+    // --- Admin View Logic ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAdminView = urlParams.get('view') === 'admin';
+
+    if (isAdminView) {
+        userView.style.display = 'none';
+        adminView.style.display = 'block';
+        document.querySelector('.back-link').href = '../../admin.html';
+        document.querySelector('h1').textContent = 'Manage Code Explainer';
+        renderLanguageChart();
+    }
+
+    // --- Template Form Logic ---
+    const templateForm = document.getElementById('template-form');
+    if (templateForm) {
+        templateForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newTemplate = {
+                id: Date.now(),
+                title: document.getElementById('template-title').value,
+                language: document.getElementById('template-language').value,
+                code: document.getElementById('template-code').value
+            };
+
+            const templates = JSON.parse(localStorage.getItem('code-templates')) || [];
+            templates.push(newTemplate);
+            localStorage.setItem('code-templates', JSON.stringify(templates));
+
+            alert('Template saved successfully!');
+            templateForm.reset();
+        });
+    }
+
+
     analyzeBtn.addEventListener('click', () => {
         const code = codeInput.value;
         const language = languageSelect.value;
+        logLanguageUse(language);
         let analysisResult = 'Analysis not available for this language.';
 
         if (language === 'javascript') {
@@ -62,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     explainBtn.addEventListener('click', () => {
         const code = codeInput.value;
         const language = languageSelect.value;
+        logLanguageUse(language);
         let explanation = 'Explanation not available for this language.';
 
         if (explanations[language]) {
@@ -77,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     outputBtn.addEventListener('click', () => {
         const language = languageSelect.value;
+        logLanguageUse(language);
         let simulatedOutput = 'Simulated output not available for this language.';
 
         if (outputs[language]) {
@@ -84,4 +124,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         resultOutput.textContent = `--- SIMULATED OUTPUT ---\\n${simulatedOutput}`;
     });
+
+    /**
+     * Logs the use of a specific language for analytics.
+     * @param {string} language The language that was used.
+     */
+    function logLanguageUse(language) {
+        let usage = JSON.parse(localStorage.getItem('code-explainer-usage')) || {};
+        usage[language] = (usage[language] || 0) + 1;
+        localStorage.setItem('code-explainer-usage', JSON.stringify(usage));
+    }
+
+    /**
+     * Renders the language usage analytics chart.
+     */
+    function renderLanguageChart() {
+        const usage = JSON.parse(localStorage.getItem('code-explainer-usage')) || {};
+        const chartData = {
+            labels: Object.keys(usage),
+            values: Object.values(usage)
+        };
+
+        if (chartData.labels.length === 0) {
+            chartData.labels = ['No Data'];
+            chartData.values = [0];
+        }
+
+        drawBarChart('language-chart', chartData, { barColor: '#9c88ff' });
+    }
 });

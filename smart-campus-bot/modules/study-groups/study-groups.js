@@ -14,8 +14,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendMessageBtn = document.getElementById('send-message-btn');
     const backToGroupsBtn = document.getElementById('back-to-groups-btn');
 
+    const userViews = document.getElementById('user-views');
+    const adminView = document.getElementById('admin-view');
+    const groupsTableBody = document.querySelector('#groups-table tbody');
+
     let groups = JSON.parse(localStorage.getItem('study-groups')) || [];
     let currentGroupId = null;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAdminView = urlParams.get('view') === 'admin';
+
+    if (isAdminView) {
+        userViews.style.display = 'none';
+        adminView.style.display = 'block';
+        document.querySelector('.back-link').href = '../../admin.html';
+        document.querySelector('h1').textContent = 'Manage Study Groups';
+        renderGroupsTable();
+    }
 
     function renderGroupList() {
         groupList.innerHTML = '';
@@ -41,9 +56,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderChatMessages() {
         const group = groups.find(g => g.id === currentGroupId);
         chatMessages.innerHTML = '';
+        if (!group.messages) group.messages = [];
+
         group.messages.forEach(msg => {
             const msgElement = document.createElement('div');
-            msgElement.textContent = `${msg.sender}: ${msg.text}`;
+            if (msg.sender === 'ANNOUNCEMENT') {
+                msgElement.className = 'message announcement-message';
+                msgElement.innerHTML = `<strong>📢 ANNOUNCEMENT:</strong> ${sanitizeInput(msg.text)}`;
+            } else {
+                msgElement.className = 'message user-message'; // Assuming a default class
+                msgElement.textContent = `${sanitizeInput(msg.sender)}: ${sanitizeInput(msg.text)}`;
+            }
             chatMessages.appendChild(msgElement);
         });
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -78,7 +101,9 @@ document.addEventListener('DOMContentLoaded', () => {
             id: Date.now(),
             name: groupName,
             description: groupDescription,
-            messages: []
+            messages: [],
+            members: [localStorage.getItem('username') || 'Anonymous'], // Add the creator as the first member
+            status: 'active' // 'active' or 'archived'
         };
         groups.push(newGroup);
         localStorage.setItem('study-groups', JSON.stringify(groups));
@@ -108,4 +133,82 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     renderGroupList();
+
+    /**
+     * Renders the groups into the admin management table.
+     */
+    function renderGroupsTable() {
+        if (!groupsTableBody) return;
+        groupsTableBody.innerHTML = '';
+
+        groups.forEach(group => {
+            const row = groupsTableBody.insertRow();
+            // Ensure members and status exist for older group data
+            const members = group.members || [];
+            const status = group.status || 'active';
+
+            row.innerHTML = `
+                <td>${sanitizeInput(group.name)}</td>
+                <td>${members.length}</td>
+                <td><span class="status-badge status-${status}">${status}</span></td>
+                <td>
+                    <button class="action-btn archive-btn" data-id="${group.id}">${status === 'active' ? 'Archive' : 'Activate'}</button>
+                    <button class="action-btn delete-btn" data-id="${group.id}">Delete</button>
+                </td>
+            `;
+        });
+    }
+
+    if (groupsTableBody) {
+        groupsTableBody.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.classList.contains('action-btn')) {
+                const groupId = parseInt(target.dataset.id);
+
+                if (target.classList.contains('delete-btn')) {
+                    if (confirm('Are you sure you want to permanently delete this group?')) {
+                        groups = groups.filter(g => g.id !== groupId);
+                        localStorage.setItem('study-groups', JSON.stringify(groups));
+                        renderGroupsTable();
+                    }
+                } else if (target.classList.contains('archive-btn')) {
+                    const groupIndex = groups.findIndex(g => g.id === groupId);
+                    if (groupIndex > -1) {
+                        const newStatus = groups[groupIndex].status === 'active' ? 'archived' : 'active';
+                        groups[groupIndex].status = newStatus;
+                        localStorage.setItem('study-groups', JSON.stringify(groups));
+                        renderGroupsTable();
+                    }
+                }
+            }
+        });
+    }
+
+    // --- Announcement Logic ---
+    const announcementForm = document.getElementById('announcement-form');
+    if (announcementForm) {
+        announcementForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const messageText = document.getElementById('announcement-message').value.trim();
+            if (messageText === '') {
+                alert('Please enter an announcement message.');
+                return;
+            }
+
+            // Add the announcement to every group's chat
+            groups.forEach(group => {
+                if (!group.messages) {
+                    group.messages = [];
+                }
+                group.messages.push({
+                    sender: 'ANNOUNCEMENT',
+                    text: messageText
+                });
+            });
+
+            localStorage.setItem('study-groups', JSON.stringify(groups));
+            alert('Announcement sent to all groups!');
+            announcementForm.reset();
+        });
+    }
 });

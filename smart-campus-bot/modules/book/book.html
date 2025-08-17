@@ -19,19 +19,53 @@
     </header>
 
     <main>
-        <div class="tool-container">
-            <textarea id="text-input" placeholder="Type or paste your text here..."></textarea>
-            <div class="controls">
-                <button id="summarize-btn">Summarize</button>
-                <button id="expand-btn">Expand</button>
-                <button id="speak-btn">Speak</button>
-                <button id="stop-btn">Stop</button>
+        <div id="user-view">
+            <div class="tool-container">
+                <textarea id="text-input" placeholder="Type or paste your text here..."></textarea>
+                <div class="controls">
+                    <button id="summarize-btn">Summarize</button>
+                    <button id="expand-btn">Expand</button>
+                    <button id="speak-btn">Speak</button>
+                    <button id="stop-btn">Stop</button>
+                    <button id="save-btn">Save Output</button>
+                </div>
+                <div id="status"></div>
+                <div id="output-container">
+                    <h2>Output:</h2>
+                    <div id="output-text"></div>
+                </div>
             </div>
-            <div id="status"></div>
-            <div id="output-container">
-                <h2>Output:</h2>
-                <div id="output-text"></div>
+        </div>
+
+        <div id="admin-view" style="display: none;">
+
+            <div class="admin-section">
+                <h2>API Key Configuration</h2>
+                <form id="api-key-form">
+                    <input type="text" id="api-key-input" placeholder="Enter (simulated) OpenAI API Key">
+                    <button type="submit">Save Key</button>
+                </form>
             </div>
+
+            <div class="admin-section">
+                <h2>Manage Saved Content</h2>
+                <div class="table-wrapper">
+                    <table id="summaries-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Saved Text</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Saved summaries will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </main>
 
