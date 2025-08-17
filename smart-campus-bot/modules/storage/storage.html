@@ -29,8 +29,40 @@
         </div>
 
         <div id="admin-view" style="display: none;">
-            <h2>Storage Analytics</h2>
-            <div id="storage-stats"></div>
+
+            <div class="admin-section">
+                <h2>Storage Overview</h2>
+                <div class="stats-grid">
+                    <div>Total Usage: <strong id="total-usage">-- MB</strong></div>
+                    <div>Total Files: <strong id="total-files">--</strong></div>
+                    <div>Total Capacity: <strong>50 MB (Simulated)</strong></div>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h2>Top Users by Storage</h2>
+                <canvas id="top-users-chart" width="400" height="200"></canvas>
+            </div>
+
+            <div class="admin-section">
+                <h2>All Stored Files</h2>
+                <div class="table-wrapper">
+                    <table id="all-files-table">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Size (KB)</th>
+                                <th>Uploaded By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- File data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </main>
 

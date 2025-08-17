@@ -19,31 +19,60 @@
     </header>
 
     <main>
-        <div id="groups-container">
-            <div id="group-list-view">
-                <h2>Available Study Groups</h2>
-                <button id="create-group-btn">Create New Group</button>
-                <div id="group-list"></div>
-            </div>
-
-            <div id="create-group-view" style="display: none;">
-                <h2>Create a New Study Group</h2>
-                <form id="create-group-form">
-                    <input type="text" id="group-name" placeholder="Group Name" required>
-                    <textarea id="group-description" placeholder="What's this group about?"></textarea>
-                    <button type="submit">Create Group</button>
-                    <button type="button" id="cancel-create-btn">Cancel</button>
-                </form>
-            </div>
-
-            <div id="group-chat-view" style="display: none;">
-                <h2 id="current-group-name"></h2>
-                <div id="chat-messages"></div>
-                <div id="chat-input-container">
-                    <input type="text" id="chat-input" placeholder="Type a message...">
-                    <button id="send-message-btn">Send</button>
+        <div id="user-views">
+            <div id="groups-container">
+                <div id="group-list-view">
+                    <h2>Available Study Groups</h2>
+                    <button id="create-group-btn">Create New Group</button>
+                    <div id="group-list"></div>
                 </div>
-                <button id="back-to-groups-btn">Back to Groups</button>
+
+                <div id="create-group-view" style="display: none;">
+                    <h2>Create a New Study Group</h2>
+                    <form id="create-group-form">
+                        <input type="text" id="group-name" placeholder="Group Name" required>
+                        <textarea id="group-description" placeholder="What's this group about?"></textarea>
+                        <button type="submit">Create Group</button>
+                        <button type="button" id="cancel-create-btn">Cancel</button>
+                    </form>
+                </div>
+
+                <div id="group-chat-view" style="display: none;">
+                    <h2 id="current-group-name"></h2>
+                    <div id="chat-messages"></div>
+                    <div id="chat-input-container">
+                        <input type="text" id="chat-input" placeholder="Type a message...">
+                        <button id="send-message-btn">Send</button>
+                    </div>
+                    <button id="back-to-groups-btn">Back to Groups</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="admin-view" style="display: none;">
+            <div class="admin-section">
+                <h2>Group Management</h2>
+                <table id="groups-table">
+                    <thead>
+                        <tr>
+                            <th>Group Name</th>
+                            <th>Members</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Group data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="admin-section">
+                <h2>Global Announcement</h2>
+                <form id="announcement-form">
+                    <textarea id="announcement-message" placeholder="Enter your announcement..." required></textarea>
+                    <button type="submit">Send to All Groups</button>
+                </form>
             </div>
         </div>
     </main>

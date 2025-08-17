@@ -92,9 +92,102 @@ main {
     border-radius: 5px;
 }
 
+/* Status Badges and Action Buttons from admin table */
+.status-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    color: white;
+    text-transform: capitalize;
+}
+.status-active { background-color: #4cd137; }
+.status-archived { background-color: #7f8fa6; }
+
+#groups-table .action-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+    margin-right: 5px;
+}
+#groups-table .archive-btn { background-color: #f0932b; }
+#groups-table .delete-btn { background-color: var(--error-color); }
+
+/* Chat Message Styles */
+.message {
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    max-width: 90%;
+}
+.user-message {
+    background-color: var(--accent-color);
+    color: var(--background-color);
+    align-self: flex-end;
+}
+.announcement-message {
+    background-color: var(--success-color);
+    color: var(--background-color);
+    font-style: italic;
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 #cancel-create-btn {
     background: var(--error-color);
     color: white;
+}
+
+/* Admin View Styles */
+.admin-section {
+    background: rgba(10, 14, 39, 0.8);
+    border: 1px solid var(--accent-color);
+    padding: 20px 30px;
+    border-radius: 10px;
+    margin-bottom: 40px;
+}
+
+.admin-section h2 {
+    margin-top: 0;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+#groups-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#groups-table th, #groups-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    text-align: left;
+}
+
+#announcement-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    height: 100px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--text-color);
+    border-radius: 5px;
+    resize: vertical;
+}
+
+#announcement-form button {
+    padding: 10px 20px;
+    background: var(--accent-color);
+    border: none;
+    color: var(--background-color);
+    cursor: pointer;
+    border-radius: 5px;
 }
 
 #create-group-form input.not-valid,

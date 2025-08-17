@@ -13,11 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const isAdminView = urlParams.get('view') === 'admin';
 
+    const recordSearchInput = document.getElementById('record-search');
+    const attendanceTableBody = document.querySelector('#attendance-table tbody');
+
     if (isAdminView) {
         userView.style.display = 'none';
         adminView.style.display = 'block';
         document.querySelector('.back-link').href = '../../admin.html';
         document.querySelector('h1').textContent = 'Manage Attendance';
+        renderAttendanceTable();
     } else {
         userView.style.display = 'block';
         adminView.style.display = 'none';
@@ -148,6 +152,93 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('OCR Text:', text);
             alert('Image OCR is for demonstration. Check console for extracted text.');
             fileProcessingStatus.textContent = 'Image processed.';
+        });
+    }
+
+    /**
+     * Renders the consolidated attendance data into the admin table.
+     */
+    function renderAttendanceTable() {
+        if (!attendanceTableBody) return;
+
+        const searchTerm = recordSearchInput.value.toLowerCase();
+        let flatData = [];
+
+        // Flatten the data and add unique identifiers for editing
+        for (const rollNo in attendanceData) {
+            attendanceData[rollNo].forEach((record, index) => {
+                flatData.push({ rollNo, ...record, id: `${rollNo}-${index}` });
+            });
+        }
+
+        const filteredData = flatData.filter(record => record.rollNo.toLowerCase().includes(searchTerm));
+
+        attendanceTableBody.innerHTML = '';
+        filteredData.forEach(record => {
+            const row = attendanceTableBody.insertRow();
+            row.innerHTML = `
+                <td>${sanitizeInput(record.rollNo)}</td>
+                <td>${sanitizeInput(record.date)}</td>
+                <td>
+                    <select class="status-select" data-id="${record.id}">
+                        <option value="present" ${record.status === 'present' ? 'selected' : ''}>Present</option>
+                        <option value="absent" ${record.status === 'absent' ? 'selected' : ''}>Absent</option>
+                    </select>
+                </td>
+            `;
+        });
+    }
+
+    if (recordSearchInput) {
+        recordSearchInput.addEventListener('input', renderAttendanceTable);
+    }
+
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+
+    if (attendanceTableBody) {
+        attendanceTableBody.addEventListener('change', (e) => {
+            if (e.target.classList.contains('status-select')) {
+                const selectEl = e.target;
+                const recordId = selectEl.dataset.id;
+                const newStatus = selectEl.value;
+
+                // Find the original record in our nested data structure
+                const [rollNo, recordIndex] = recordId.split('-');
+
+                if (attendanceData[rollNo] && attendanceData[rollNo][recordIndex]) {
+                    // Update the status
+                    attendanceData[rollNo][recordIndex].status = newStatus;
+                    // Save the entire updated object back to localStorage
+                    localStorage.setItem('attendance-data', JSON.stringify(attendanceData));
+                }
+            }
+        });
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', () => {
+            const headers = ['Roll Number', 'Date', 'Status'];
+            let csvContent = headers.join(',') + '\n';
+
+            // Flatten the data for CSV export
+            for (const rollNo in attendanceData) {
+                attendanceData[rollNo].forEach(record => {
+                    const row = [rollNo, record.date, record.status];
+                    csvContent += row.join(',') + '\n';
+                });
+            }
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'attendance_report.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         });
     }
 });

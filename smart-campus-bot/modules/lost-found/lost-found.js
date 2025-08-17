@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('.back-link').href = '../../admin.html';
         document.querySelector('h1').textContent = 'Manage Lost & Found';
         renderAdminItems();
+        drawAdminChart();
     } else {
         renderItems();
     }
@@ -42,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const itemName = itemNameInput.value;
             const itemDescription = itemDescriptionInput.value;
-            const itemStatus = document.getElementById('item-status').value;
+            const itemStatus = document.getElementById('item-type').value;
             const itemImageInput = document.getElementById('item-image');
 
             const reader = new FileReader();
@@ -51,9 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: Date.now(),
                 name: itemName,
                 description: itemDescription,
-                status: itemStatus,
+                type: itemStatus, // 'lost' or 'found'
                 image: event.target.result,
-                reportedAt: new Date()
+                reportedAt: new Date(),
+                status: 'pending' // 'pending', 'approved', 'resolved'
             };
             items.push(newItem);
             localStorage.setItem('lost-found-items', JSON.stringify(items));
@@ -68,9 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: Date.now(),
                 name: itemName,
                 description: itemDescription,
-                status: itemStatus,
+                type: itemStatus, // 'lost' or 'found'
                 image: null,
-                reportedAt: new Date()
+                reportedAt: new Date(),
+                status: 'pending' // 'pending', 'approved', 'resolved'
             };
             items.push(newItem);
             localStorage.setItem('lost-found-items', JSON.stringify(items));
@@ -126,21 +129,61 @@ document.addEventListener('DOMContentLoaded', () => {
             itemCard.className = 'item-card';
             itemCard.innerHTML = `
                 ${item.image ? `<img src="${item.image}" alt="${sanitizeInput(item.name)}">` : ''}
-                <h3>${sanitizeInput(item.name)} (${item.status})</h3>
+                <h3>${sanitizeInput(item.name)} (${item.type})</h3>
                 <p>${sanitizeInput(item.description)}</p>
+                <p>Status: <span class="status-badge status-${item.status}">${item.status}</span></p>
                 <small>Reported: ${new Date(item.reportedAt).toLocaleString()}</small>
-                <button class="delete-btn" data-id="${item.id}">Delete</button>
+                <div class="admin-actions">
+                    <button class="action-btn approve-btn" data-id="${item.id}">Approve</button>
+                    <button class="action-btn resolve-btn" data-id="${item.id}">Resolve</button>
+                    <button class="action-btn delete-btn" data-id="${item.id}">Delete</button>
+                </div>
             `;
             adminItemList.appendChild(itemCard);
         });
 
-        document.querySelectorAll('.delete-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
+        // Use event delegation for more efficient event handling
+        adminItemList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('action-btn')) {
                 const itemId = parseInt(e.target.dataset.id, 10);
-                items = items.filter(item => item.id !== itemId);
-                localStorage.setItem('lost-found-items', JSON.stringify(items));
-                renderAdminItems();
-            });
+
+                if (e.target.classList.contains('delete-btn')) {
+                    items = items.filter(item => item.id !== itemId);
+                    localStorage.setItem('lost-found-items', JSON.stringify(items));
+                    renderAdminItems();
+                } else if (e.target.classList.contains('approve-btn')) {
+                    updateItemStatus(itemId, 'approved');
+                } else if (e.target.classList.contains('resolve-btn')) {
+                    updateItemStatus(itemId, 'resolved');
+                }
+            }
         });
+    }
+
+    /**
+     * Updates the status of a specific item.
+     * @param {number} itemId The ID of the item to update.
+     * @param {string} newStatus The new status ('pending', 'approved', 'resolved').
+     */
+    function updateItemStatus(itemId, newStatus) {
+        const itemIndex = items.findIndex(item => item.id === itemId);
+        if (itemIndex > -1) {
+            items[itemIndex].status = newStatus;
+            localStorage.setItem('lost-found-items', JSON.stringify(items));
+            renderAdminItems();
+        }
+    }
+
+    /**
+     * Draws the analytics chart for the admin view.
+     */
+    function drawAdminChart() {
+        const lostCount = items.filter(item => item.type === 'lost').length;
+        const foundCount = items.filter(item => item.type === 'found').length;
+        const chartData = {
+            labels: ['Lost', 'Found'],
+            values: [lostCount, foundCount]
+        };
+        drawBarChart('lost-found-admin-chart', chartData, { barColor: '#ffd700' });
     }
 });
