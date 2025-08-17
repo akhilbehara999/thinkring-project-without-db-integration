@@ -5,11 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginMessage = document.getElementById('login-message');
     const adminAccessBtn = document.getElementById('admin-access-btn');
 
-    const users = {
-        'student': { password: 'password123', role: 'student' },
-        'KAB': { password: simpleHash('7013432177@akhil'), role: 'admin' }
-    };
-
     let failedLoginAttempts = 0;
     const maxLoginAttempts = 3;
 
@@ -37,12 +32,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const allUsers = getUsers();
         const username = usernameInput.value;
         const password = passwordInput.value;
-        const user = users[username];
+        const user = allUsers.find(u => u.username === username);
 
         let isAuthenticated = false;
         if (user) {
+            // Check if user is suspended
+            if (user.status === 'suspended') {
+                loginMessage.textContent = 'Your account is suspended.';
+                speak('This account is suspended.');
+                return; // Stop the login process
+            }
+
+            // Check password
             if (user.role === 'admin') {
                 isAuthenticated = simpleHash(password) === user.password;
             } else {
@@ -55,10 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
             loginMessage.style.color = 'var(--success-color)';
             speak('Authentication successful. Redirecting to your dashboard.');
 
-            // Store session token and user role
+            // Store session token and user info
             localStorage.setItem('sessionToken', `token-${Date.now()}`);
             localStorage.setItem('userRole', user.role);
-            localStorage.setItem('username', username);
+            localStorage.setItem('username', user.username);
+
+            // Update last login
+            updateUser(user.id, { lastLogin: new Date().toLocaleString() });
 
             setTimeout(() => {
                 window.location.href = user.role === 'admin' ? 'admin.html' : 'dashboard.html';

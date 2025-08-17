@@ -1,3 +1,4 @@
+/* admin.css */
 .admin-header {
     display: flex;
     justify-content: space-between;
@@ -20,7 +21,7 @@
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background 0.3s, color 0.3s;
+    transition: all 0.3s;
 }
 
 .logout-btn:hover {
@@ -34,33 +35,158 @@
     padding: 40px;
 }
 
-.module-grid {
+/* Overview Cards */
+.overview-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 30px;
+    margin-bottom: 40px;
 }
 
-.module-card {
+.overview-card {
     background: rgba(10, 14, 39, 0.8);
     border: 1px solid var(--success-color);
     border-radius: 10px;
-    padding: 30px;
+    padding: 25px;
     text-align: center;
-    cursor: pointer;
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: all 0.3s ease;
 }
 
-.module-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
+.overview-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
 }
 
-.module-card h2 {
-    font-size: 1.8em;
-    color: var(--success-color);
+.overview-card h3 {
     margin-top: 0;
+    color: var(--light-text-color);
+    font-size: 1.2em;
+    text-transform: uppercase;
 }
 
-.module-card p {
+.overview-card p {
+    font-size: 2.5em;
+    color: var(--success-color);
+    margin: 0;
+}
+
+.overview-card .status-ok {
+    color: var(--accent-color);
+}
+
+/* Charts */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.chart-container {
+    background: rgba(10, 14, 39, 0.8);
+    border: 1px solid var(--success-color);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.chart-container h3 {
+    text-align: center;
     color: var(--light-text-color);
+}
+
+/* User Management */
+.user-management-container {
+    background: rgba(10, 14, 39, 0.8);
+    border: 1px solid var(--success-color);
+    padding: 30px;
+    border-radius: 10px;
+}
+
+#user-search {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--text-color);
+    border-radius: 5px;
+}
+
+#user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#user-table th, #user-table td {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    text-align: left;
+}
+
+#user-table th {
+    color: var(--success-color);
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 1px;
+}
+
+#user-table tr:last-child td {
+    border-bottom: none;
+}
+
+#user-table tbody tr {
+    transition: background-color 0.2s ease-in-out;
+}
+
+#user-table tbody tr:hover {
+    background-color: rgba(0, 212, 255, 0.08);
+}
+
+.role-badge, .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    text-transform: capitalize;
+    color: #fff;
+}
+
+.role-admin {
+    background-color: var(--success-color);
+    color: var(--background-color);
+}
+
+.role-student {
+    background-color: var(--accent-color);
+    color: var(--background-color);
+}
+
+.status-active {
+    background-color: #4cd137; /* A green color */
+}
+
+.status-suspended {
+    background-color: var(--error-color);
+}
+
+.action-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+    margin-right: 5px;
+    font-size: 0.9em;
+    transition: transform 0.2s;
+}
+
+.action-btn:hover {
+    transform: scale(1.05);
+}
+
+.suspend-btn {
+    background-color: var(--error-color);
+}
+
+.promote-btn {
+    background-color: var(--success-color);
 }

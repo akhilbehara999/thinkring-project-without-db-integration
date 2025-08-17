@@ -15,46 +15,64 @@
         <div class="loader-text">Loading Admin Panel...</div>
     </div>
     <header class="admin-header">
-        <h1>Admin Panel</h1>
+        <h1>Admin Dashboard</h1>
         <button id="logout-btn" class="logout-btn">Logout</button>
     </header>
     <main class="admin-main">
-        <div class="module-grid">
-            <div class="module-card" data-module="lost-found" role="button" tabindex="0">
-                <h2>Manage Lost & Found</h2>
-                <p>View, delete, and manage reported items.</p>
+        <div class="overview-grid">
+            <div class="overview-card">
+                <h3>Total Users</h3>
+                <p id="total-users">--</p>
             </div>
-            <div class="module-card" data-module="attendance" role="button" tabindex="0">
-                <h2>Manage Attendance</h2>
-                <p>Upload attendance sheets and manage records.</p>
+            <div class="overview-card">
+                <h3>System Usage</h3>
+                <p id="system-usage">--</p>
             </div>
-            <div class="module-card" data-module="quiz" role="button" tabindex="0">
-                <h2>Manage Quizzes</h2>
-                <p>Add, edit, and remove quiz questions.</p>
+            <div class="overview-card">
+                <h3>Recent Alerts</h3>
+                <p id="recent-alerts">--</p>
             </div>
-            <div class="module-card" data-module="book" role="button" tabindex="0">
-                <h2>Book Tools Analytics</h2>
-                <p>View usage statistics for the book tools.</p>
+            <div class="overview-card">
+                <h3>Voice Status</h3>
+                <p id="voice-status" class="status-ok">Operational</p>
             </div>
-            <div class="module-card" data-module="code-explainer" role="button" tabindex="0">
-                <h2>Code Explainer Analytics</h2>
-                <p>View usage statistics for the code explainer.</p>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3>Lost & Found Trends</h3>
+                <canvas id="lost-found-chart"></canvas>
             </div>
-            <div class="module-card" data-module="storage" role="button" tabindex="0">
-                <h2>Storage Analytics</h2>
-                <p>Monitor storage usage and user activity.</p>
+            <div class="chart-container">
+                <h3>Quiz Usage</h3>
+                <canvas id="quiz-chart"></canvas>
             </div>
-            <div class="module-card" data-module="chatbot" role="button" tabindex="0">
-                <h2>Train Chatbot</h2>
-                <p>Upload documents to expand the chatbot's knowledge.</p>
+            <div class="chart-container">
+                <h3>Storage Capacity</h3>
+                <canvas id="storage-chart"></canvas>
             </div>
-            <div class="module-card" data-module="study-groups" role="button" tabindex="0">
-                <h2>Moderate Study Groups</h2>
-                <p>Manage study groups and user reports.</p>
-            </div>
+        </div>
+
+        <div class="user-management-container">
+            <h2>User Management</h2>
+            <input type="text" id="user-search" placeholder="Search users...">
+            <table id="user-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- User data will be populated here -->
+                </tbody>
+            </table>
         </div>
     </main>
     <script src="js/utils.js"></script>
+    <script src="js/data.js"></script>
     <script src="js/global.js"></script>
     <script src="js/admin.js"></script>
 </body>
