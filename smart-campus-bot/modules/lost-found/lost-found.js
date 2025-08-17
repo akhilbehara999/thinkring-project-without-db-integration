@@ -20,13 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const isAdminView = urlParams.get('view') === 'admin';
 
     if (isAdminView) {
-        userView.style.display = 'none';
-        adminView.style.display = 'block';
+        document.body.classList.add('admin-mode');
         document.querySelector('.back-link').href = '../../admin.html';
         document.querySelector('h1').textContent = 'Manage Lost & Found';
         renderAdminTable();
         renderAdminAnalytics();
     } else {
+        document.body.classList.add('user-mode');
         renderItems();
     }
 
