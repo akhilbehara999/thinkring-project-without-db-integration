@@ -140,10 +140,10 @@ main {
 }
 
 .item-card {
-    background: rgba(10, 25, 47, 0.6);
+    background: var(--surface-color);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid transparent; /* Border is handled by pseudo-element now */
+    border: 1px solid var(--border-color);
     border-radius: 10px;
     padding: 20px;
     display: flex;
@@ -293,12 +293,12 @@ main {
 }
 
 .modal-content {
-    background: rgba(10, 25, 47, 0.7);
+    background: var(--surface-color);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     padding: 30px;
     border-radius: 10px;
-    border: 1px solid var(--accent-color);
+    border: 1px solid var(--border-color);
     width: 90%;
     max-width: 500px;
     position: relative;
@@ -313,13 +313,13 @@ main {
 #report-item {
     max-width: 600px;
     margin: 40px auto;
-    background: rgba(10, 25, 47, 0.6); /* Slightly more transparent */
+    background: var(--surface-color);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px); /* For Safari */
     padding: 30px;
     border-radius: 10px;
-    border: 1px solid var(--accent-color);
-    box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 20px var(--shadow-color);
 }
 
 .modal-content .close-btn {
@@ -412,10 +412,10 @@ body.admin-mode #admin-view {
 }
 
 .analytics-panel {
-    background: rgba(10, 25, 47, 0.6);
+    background: var(--surface-color);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 212, 255, 0.2);
+    border: 1px solid var(--border-color);
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 40px;
