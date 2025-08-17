@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - Smart Service Campus Bot</title>
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="quiz.css">
+    <link rel="stylesheet" href="../../css/responsive.css">
+</head>
+<body>
+    <div id="loader-wrapper">
+        <div class="loader"></div>
+        <div class="loader-text">Loading Module...</div>
+    </div>
+    <header>
+        <h1>Coding Quiz Challenge</h1>
+        <a href="../../dashboard.html" class="back-link">Back to Dashboard</a>
+    </header>
+
+    <main>
+        <div id="quiz-container">
+            <div id="start-screen">
+                <h2>Test Your Coding Knowledge</h2>
+                <p>Select a category and difficulty to begin.</p>
+                <select id="category-select">
+                    <option value="9">General Knowledge</option>
+                    <option value="18">Computer Science</option>
+                    <option value="30">Gadgets</option>
+                </select>
+                <select id="difficulty-select">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+                <button id="start-btn">Start Quiz</button>
+            </div>
+
+            <div id="quiz-screen" style="display: none;">
+                <div id="question-container"></div>
+                <div id="options-container"></div>
+                <button id="next-btn">Next</button>
+            </div>
+
+            <div id="results-screen" style="display: none;">
+                <h2>Quiz Complete!</h2>
+                <p>Your Score: <span id="score"></span></p>
+                <p>Achievements Unlocked: <span id="achievements"></span></p>
+                <button id="play-again-btn">Play Again</button>
+            </div>
+        </div>
+
+        <div id="admin-view" style="display: none;">
+            <h2>Manage Quiz Questions</h2>
+            <form id="add-question-form">
+                <input type="text" id="question-text" placeholder="Question" required>
+                <input type="text" id="correct-answer" placeholder="Correct Answer" required>
+                <input type="text" id="incorrect-answer-1" placeholder="Incorrect Answer 1" required>
+                <input type="text" id="incorrect-answer-2" placeholder="Incorrect Answer 2" required>
+                <input type="text" id="incorrect-answer-3" placeholder="Incorrect Answer 3" required>
+                <button type="submit">Add Question</button>
+            </form>
+            <div id="results-table-container">
+                <h3>Quiz Results</h3>
+                <table id="results-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Score</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Results will be populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="quiz.js"></script>
+</body>
+</html>

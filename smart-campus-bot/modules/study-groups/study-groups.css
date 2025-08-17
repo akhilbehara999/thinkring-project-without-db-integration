@@ -1,0 +1,104 @@
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background: rgba(10, 14, 39, 0.8);
+    border-bottom: 1px solid var(--accent-color);
+}
+
+h1, h2 {
+    color: var(--accent-color);
+}
+
+.back-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    border: 1px solid var(--accent-color);
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.back-link:hover {
+    background: var(--accent-color);
+    color: var(--background-color);
+}
+
+main {
+    padding: 40px;
+}
+
+#group-list {
+    margin-top: 20px;
+}
+
+.group-card {
+    background: rgba(10, 14, 39, 0.8);
+    border: 1px solid var(--accent-color);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+#create-group-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 500px;
+}
+
+#create-group-form input, #create-group-form textarea {
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--text-color);
+    border-radius: 5px;
+}
+
+#group-chat-view {
+    /* Styles similar to chatbot */
+}
+
+#chat-messages {
+    height: 40vh;
+    overflow-y: auto;
+    border: 1px solid var(--accent-color);
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+#chat-input-container {
+    display: flex;
+}
+
+#chat-input {
+    flex-grow: 1;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    outline: none;
+}
+
+#send-message-btn, #create-group-btn, #cancel-create-btn, #back-to-groups-btn, #create-group-form button {
+    padding: 10px 20px;
+    background: var(--accent-color);
+    border: none;
+    color: var(--background-color);
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#cancel-create-btn {
+    background: var(--error-color);
+    color: white;
+}
+
+#create-group-form input.not-valid,
+#create-group-form textarea.not-valid {
+    border-color: var(--error-color) !important;
+    box-shadow: 0 0 10px var(--error-color) !important;
+}

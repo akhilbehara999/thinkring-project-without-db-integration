@@ -1,0 +1,60 @@
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background: rgba(10, 14, 39, 0.8);
+    border-bottom: 1px solid var(--accent-color);
+}
+
+h1 {
+    color: var(--accent-color);
+}
+
+.back-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    border: 1px solid var(--accent-color);
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.back-link:hover {
+    background: var(--accent-color);
+    color: var(--background-color);
+}
+
+main {
+    padding: 40px;
+}
+
+#manual-entry-form, #file-upload {
+    margin-bottom: 40px;
+}
+
+#manual-entry-form input, #manual-entry-form select, #file-upload input, #roll-number-search {
+    margin-right: 10px;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    border-radius: 5px;
+    color: var(--text-color);
+}
+
+#manual-entry-form button, #process-file-btn {
+    padding: 10px;
+    background: var(--accent-color);
+    border: none;
+    border-radius: 5px;
+    color: var(--background-color);
+    cursor: pointer;
+}
+
+#attendance-display {
+    margin-top: 20px;
+    background: rgba(10, 14, 39, 0.8);
+    border: 1px solid var(--accent-color);
+    padding: 20px;
+    border-radius: 10px;
+}

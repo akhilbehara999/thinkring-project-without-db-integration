@@ -1,0 +1,66 @@
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background: rgba(10, 14, 39, 0.8);
+    border-bottom: 1px solid var(--success-color);
+}
+
+.admin-header h1 {
+    font-size: 2em;
+    color: var(--success-color);
+    margin: 0;
+}
+
+.logout-btn {
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+}
+
+.logout-btn:hover {
+    background: var(--accent-color);
+    color: var(--background-color);
+    box-shadow: 0 0 15px var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.admin-main {
+    padding: 40px;
+}
+
+.module-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.module-card {
+    background: rgba(10, 14, 39, 0.8);
+    border: 1px solid var(--success-color);
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.module-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
+}
+
+.module-card h2 {
+    font-size: 1.8em;
+    color: var(--success-color);
+    margin-top: 0;
+}
+
+.module-card p {
+    color: var(--light-text-color);
+}

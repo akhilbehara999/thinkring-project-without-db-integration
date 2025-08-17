@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Service Campus Bot - Admin</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <div id="loader-wrapper">
+        <div class="loader"></div>
+        <div class="loader-text">Loading Admin Panel...</div>
+    </div>
+    <header class="admin-header">
+        <h1>Admin Panel</h1>
+        <button id="logout-btn" class="logout-btn">Logout</button>
+    </header>
+    <main class="admin-main">
+        <div class="module-grid">
+            <div class="module-card" data-module="lost-found" role="button" tabindex="0">
+                <h2>Manage Lost & Found</h2>
+                <p>View, delete, and manage reported items.</p>
+            </div>
+            <div class="module-card" data-module="attendance" role="button" tabindex="0">
+                <h2>Manage Attendance</h2>
+                <p>Upload attendance sheets and manage records.</p>
+            </div>
+            <div class="module-card" data-module="quiz" role="button" tabindex="0">
+                <h2>Manage Quizzes</h2>
+                <p>Add, edit, and remove quiz questions.</p>
+            </div>
+            <div class="module-card" data-module="book" role="button" tabindex="0">
+                <h2>Book Tools Analytics</h2>
+                <p>View usage statistics for the book tools.</p>
+            </div>
+            <div class="module-card" data-module="code-explainer" role="button" tabindex="0">
+                <h2>Code Explainer Analytics</h2>
+                <p>View usage statistics for the code explainer.</p>
+            </div>
+            <div class="module-card" data-module="storage" role="button" tabindex="0">
+                <h2>Storage Analytics</h2>
+                <p>Monitor storage usage and user activity.</p>
+            </div>
+            <div class="module-card" data-module="chatbot" role="button" tabindex="0">
+                <h2>Train Chatbot</h2>
+                <p>Upload documents to expand the chatbot's knowledge.</p>
+            </div>
+            <div class="module-card" data-module="study-groups" role="button" tabindex="0">
+                <h2>Moderate Study Groups</h2>
+                <p>Manage study groups and user reports.</p>
+            </div>
+        </div>
+    </main>
+    <script src="js/utils.js"></script>
+    <script src="js/global.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
