@@ -96,3 +96,11 @@ main {
     border-color: var(--error-color) !important;
     box-shadow: 0 0 10px var(--error-color) !important;
 }
+
+.empty-message {
+    color: var(--light-text-color);
+    text-align: center;
+    padding: 40px;
+    font-style: italic;
+    grid-column: 1 / -1; /* Make it span all columns in the grid */
+}
