@@ -94,6 +94,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderItems(itemsToRender = items) {
         if(!itemList) return;
         itemList.innerHTML = '';
+
+        if (itemsToRender.length === 0) {
+            itemList.innerHTML = '<p class="empty-message">No lost or found items have been reported yet.</p>';
+            return;
+        }
+
         itemsToRender.forEach(item => {
             const itemCard = document.createElement('div');
             itemCard.className = 'item-card';
@@ -109,6 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderAdminItems() {
         adminItemList.innerHTML = '';
+
+        if (items.length === 0) {
+            adminItemList.innerHTML = '<p class="empty-message">No items have been reported.</p>';
+            return;
+        }
+
         items.forEach(item => {
             const itemCard = document.createElement('div');
             itemCard.className = 'item-card';

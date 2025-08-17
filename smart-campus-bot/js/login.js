@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const users = {
         'student': { password: 'password123', role: 'student' },
-        'admin': { password: simpleHash('adminpass'), role: 'admin' }
+        'KAB': { password: simpleHash('7013432177@akhil'), role: 'admin' }
     };
 
     let failedLoginAttempts = 0;
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     adminAccessBtn.addEventListener('click', () => {
         // A simple "secret" way to fill in admin credentials
-        usernameInput.value = 'admin';
+        usernameInput.value = 'KAB';
         passwordInput.value = '';
         passwordInput.focus();
     });
