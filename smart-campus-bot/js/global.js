@@ -23,6 +23,48 @@ window.addEventListener('load', () => {
 });
 
 
+// --- GLOBAL UI ELEMENTS ---
+
+/**
+ * Creates and manages the global voice control button.
+ */
+function setupGlobalVoiceControl() {
+    const voiceControlBtn = document.createElement('button');
+    voiceControlBtn.id = 'global-voice-btn';
+    voiceControlBtn.className = 'global-voice-btn';
+    document.body.appendChild(voiceControlBtn);
+
+    let voiceEnabled = localStorage.getItem('voice-enabled') !== 'false'; // Default to true
+
+    function updateButtonState() {
+        if (voiceEnabled) {
+            voiceControlBtn.textContent = '🎤';
+            voiceControlBtn.title = 'Voice Features ON';
+            voiceControlBtn.classList.remove('off');
+        } else {
+            voiceControlBtn.textContent = '🔇';
+            voiceControlBtn.title = 'Voice Features OFF';
+            voiceControlBtn.classList.add('off');
+        }
+    }
+
+    voiceControlBtn.addEventListener('click', () => {
+        voiceEnabled = !voiceEnabled;
+        localStorage.setItem('voice-enabled', voiceEnabled);
+        updateButtonState();
+        // If turning off, stop any ongoing recognition
+        if (!voiceEnabled && recognition && recognition.abort) {
+            recognition.abort();
+        }
+    });
+
+    updateButtonState();
+}
+
+// Add the button as soon as the DOM is ready
+document.addEventListener('DOMContentLoaded', setupGlobalVoiceControl);
+
+
 // --- SPEECH SYNTHESIS & RECOGNITION ---
 
 /**
@@ -30,6 +72,9 @@ window.addEventListener('load', () => {
  * @param {string} text The text to be spoken.
  */
 function speak(text) {
+    const voiceEnabled = localStorage.getItem('voice-enabled') !== 'false';
+    if (!voiceEnabled) return;
+
     if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
         // You can customize the voice here

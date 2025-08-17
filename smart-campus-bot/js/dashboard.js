@@ -26,6 +26,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Voice commands
     if ('webkitSpeechRecognition' in window) {
+        const voiceEnabled = localStorage.getItem('voice-enabled') !== 'false';
+        if (!voiceEnabled) {
+            console.log('Voice commands disabled by user setting.');
+            return;
+        }
+
         recognition = new webkitSpeechRecognition(); // Use global var
         recognition.continuous = true;
         recognition.interimResults = false;

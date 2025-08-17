@@ -45,10 +45,23 @@ main {
     resize: vertical;
 }
 
+#text-input.dragover {
+    border-style: dashed;
+    border-color: var(--success-color);
+    box-shadow: 0 0 20px var(--success-color);
+}
+
 .controls {
     margin: 20px 0;
     display: flex;
     gap: 15px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.control-group {
+    display: flex;
+    gap: 10px;
 }
 
 .controls button {

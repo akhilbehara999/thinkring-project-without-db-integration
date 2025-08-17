@@ -37,6 +37,7 @@ main {
     flex-direction: column;
     border: 1px solid var(--accent-color);
     border-radius: 10px;
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.3);
 }
 
 #chat-messages {
@@ -52,6 +53,7 @@ main {
     padding: 10px 15px;
     border-radius: 20px;
     max-width: 80%;
+    animation: fadeInSlideUp 0.4s ease-out;
 }
 
 .user-message {
@@ -61,10 +63,45 @@ main {
     margin-left: auto;
 }
 
+.bot-status {
+    font-style: italic;
+    color: var(--light-text-color);
+    opacity: 0.7;
+}
+
 .bot-message {
     background: #1e2a4a;
     color: var(--light-text-color);
     align-self: flex-start;
+    position: relative;
+    padding-bottom: 35px; /* Space for feedback buttons */
+}
+
+.feedback-container {
+    position: absolute;
+    bottom: 8px;
+    right: 12px;
+    display: flex;
+    gap: 5px;
+}
+.feedback-btn {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+.feedback-btn:hover {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+}
+.feedback-btn.rated {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--accent-color);
 }
 
 #chat-input-container {
@@ -156,6 +193,60 @@ main {
     color: var(--background-color);
     cursor: pointer;
     border-radius: 5px;
+}
+
+/* AI Mode Toggle Styles */
+.ai-mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--light-text-color);
+}
+
+.toggle-switch {
+    position: relative;
+}
+.toggle-checkbox {
+    display: none;
+}
+.toggle-label {
+    display: block;
+    width: 50px;
+    height: 26px;
+    background-color: #333;
+    border-radius: 13px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.toggle-label::after {
+    content: '';
+    display: block;
+    width: 22px;
+    height: 22px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: left 0.3s;
+}
+.toggle-checkbox:checked + .toggle-label {
+    background-color: var(--accent-color);
+}
+.toggle-checkbox:checked + .toggle-label::after {
+    left: 26px;
+}
+
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 #train-form {

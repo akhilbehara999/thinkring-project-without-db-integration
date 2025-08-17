@@ -21,12 +21,19 @@
     <main>
         <div id="user-view">
             <div class="explainer-container">
-                <select id="language-select">
-                    <option value="javascript">JavaScript</option>
-                <option value="python">Python</option>
-                <option value="java">Java</option>
-                <option value="c">C</option>
-            </select>
+                <div class="editor-toolbar">
+                    <select id="language-select">
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="c">C</option>
+                    </select>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="learning-mode-toggle" class="toggle-checkbox">
+                        <label for="learning-mode-toggle" class="toggle-label"></label>
+                        <span>Learning Mode</span>
+                    </div>
+                </div>
             <textarea id="code-input" placeholder="Paste your code here..."></textarea>
             <div class="controls">
                 <button id="analyze-btn">Analysis</button>
@@ -40,6 +47,14 @@
     </div>
 
     <div id="admin-view" style="display: none;">
+
+        <div class="admin-section">
+            <h2>API Key Configuration</h2>
+            <form id="api-key-form">
+                <input type="text" id="api-key-input" placeholder="Enter shared OpenRouter API Key">
+                <button type="submit">Save Key</button>
+            </form>
+        </div>
 
         <div class="admin-section">
             <h2>Upload Code Template</h2>

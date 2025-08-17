@@ -198,6 +198,16 @@ main {
     transform: scale(1);
 }
 
+#report-item {
+    max-width: 600px;
+    margin: 40px auto;
+    background: rgba(10, 14, 39, 0.8);
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid var(--accent-color);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+}
+
 .modal-content .close-btn {
     position: absolute;
     top: 10px;
@@ -253,6 +263,17 @@ main {
 #admin-items-table tr.match-highlight {
     background-color: rgba(0, 212, 255, 0.15);
     border-left: 3px solid var(--accent-color);
+}
+
+/* View Toggling */
+#user-views, #admin-view {
+    display: none;
+}
+body.user-mode #user-views {
+    display: block;
+}
+body.admin-mode #admin-view {
+    display: block;
 }
 
 .item-card h3 {

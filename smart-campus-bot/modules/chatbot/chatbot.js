@@ -15,6 +15,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const urlParams = new URLSearchParams(window.location.search);
     const kbTableBody = document.querySelector('#kb-table tbody');
+    const aiModeToggle = document.getElementById('ai-mode-toggle');
+
+    // Initialize AI mode from sessionStorage or default to on
+    if (sessionStorage.getItem('ai-mode-enabled') === 'false') {
+        aiModeToggle.checked = false;
+    } else {
+        aiModeToggle.checked = true;
+    }
+
+    if (aiModeToggle) {
+        aiModeToggle.addEventListener('change', () => {
+            sessionStorage.setItem('ai-mode-enabled', aiModeToggle.checked);
+        });
+    }
 
     if (urlParams.get('view') === 'admin') {
         if(userView) userView.style.display = 'none';
@@ -23,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('h1').textContent = 'Manage Chatbot';
         renderKbTable();
         renderChatbotAnalytics();
+        renderSatisfactionStats();
     }
 
     /**
@@ -98,37 +113,113 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    function sendMessage() {
+    async function sendMessage() {
         const userInput = chatInput.value.trim();
         if (userInput === '') return;
 
         addMessage(userInput, 'user');
         chatInput.value = '';
+        addMessage("Thinking...", 'bot-status'); // Show typing indicator
 
-        setTimeout(() => {
-            const botResponse = getBotResponse(userInput);
-            addMessage(botResponse, 'bot');
-        }, 500);
+        const botResponse = await getBotResponse(userInput);
+
+        // Remove "Thinking..." and add the final response
+        const statusMessage = document.querySelector('.bot-status');
+        if(statusMessage) statusMessage.remove();
+
+        addMessage(botResponse, 'bot');
     }
 
     function addMessage(text, sender) {
+        const messageId = Date.now();
+        const messageContainer = document.createElement('div');
+        messageContainer.className = `message-container`;
+
         const messageElement = document.createElement('div');
         messageElement.className = `message ${sender}-message`;
-        messageElement.textContent = text;
-        chatMessages.appendChild(messageElement);
+
+        if (sender === 'bot') {
+            messageElement.innerHTML = text; // Use innerHTML for the emoji
+
+            const feedbackContainer = document.createElement('div');
+            feedbackContainer.className = 'feedback-container';
+            feedbackContainer.innerHTML = `
+                <button class="feedback-btn" data-id="${messageId}" data-rating="good">👍</button>
+                <button class="feedback-btn" data-id="${messageId}" data-rating="bad">👎</button>
+            `;
+            messageElement.appendChild(feedbackContainer);
+        } else {
+            messageElement.textContent = text;
+        }
+
+        messageContainer.appendChild(messageElement);
+        chatMessages.appendChild(messageContainer);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function getBotResponse(input) {
+    if (chatMessages) {
+        chatMessages.addEventListener('click', (e) => {
+            const button = e.target.closest('.feedback-btn');
+            if (button) {
+                const parentContainer = button.parentElement;
+                if (parentContainer.classList.contains('rated')) {
+                    return; // Already rated
+                }
+
+                const messageId = button.dataset.id;
+                const rating = button.dataset.rating;
+
+                const ratings = JSON.parse(localStorage.getItem('chatbot-ratings')) || [];
+                ratings.push({ messageId, rating });
+                localStorage.setItem('chatbot-ratings', JSON.stringify(ratings));
+
+                parentContainer.classList.add('rated');
+                button.style.borderColor = 'var(--success-color)';
+            }
+        });
+    }
+
+async function askChatbot(question) {
+    const apiKey = localStorage.getItem('book-tools-api-key'); // Reuse shared key
+    if (!apiKey) {
+        return "Error: AI service is not configured. Please contact an administrator.";
+    }
+
+    try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${apiKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              "model": "deepseek/deepseek-r1-0528:free",
+              "messages": [
+                { "role": "system", "content": "You are a helpful AI assistant for a university campus." },
+                { "role": "user", "content": question }
+              ]
+            })
+        });
+        if (!response.ok) {
+            return "Sorry, the AI service is currently unavailable.";
+        }
+        const data = await response.json();
+        return data.choices[0].message.content;
+    } catch (error) {
+        return "Error connecting to AI service. Please check your network.";
+    }
+}
+
+    async function getBotResponse(input) {
         const lowerInput = input.toLowerCase();
 
-        // Check for contextual follow-up
+        // 1. Check for contextual follow-up
         if (context === 'library' && (lowerInput.includes('weekend') || lowerInput.includes('saturday') || lowerInput.includes('sunday'))) {
             context = null; // Reset context
             return "The library is closed on weekends.";
         }
 
-        // Simple keyword matching
+        // 2. Search local knowledge base
         for (const question in knowledgeBase) {
             if (lowerInput.includes(question)) {
                 logInteraction(question); // Log the matched keyword
@@ -142,14 +233,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // "Internet search" placeholder
-        if (lowerInput.startsWith('search for')) {
-            context = null;
-            return `I found this on the web for "${input.substring(11)}": (This is a simulated search result).`;
+        // 3. Fallback to AI
+        if (aiModeToggle.checked) {
+            logInteraction('AI Fallback'); // Log this interaction
+            const aiResponse = await askChatbot(input);
+            return `🌐 ${aiResponse}`;
+        } else {
+            return "AI Mode is disabled. I can only answer questions from my local knowledge base.";
         }
-
-        context = null;
-        return "I'm not sure how to answer that. Try asking something else or rephrasing.";
     }
 
 
@@ -243,5 +334,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         drawBarChart('chatbot-analytics-chart', chartData, { barColor: '#f0932b' });
+    }
+
+    /**
+     * Renders the user satisfaction stats in the admin panel.
+     */
+    function renderSatisfactionStats() {
+        const ratings = JSON.parse(localStorage.getItem('chatbot-ratings')) || [];
+        const statsContainer = document.getElementById('satisfaction-stats');
+        if (!statsContainer) return;
+
+        const goodRatings = ratings.filter(r => r.rating === 'good').length;
+        const badRatings = ratings.filter(r => r.rating === 'bad').length;
+        const totalRatings = ratings.length;
+        const satisfactionRate = totalRatings > 0 ? ((goodRatings / totalRatings) * 100).toFixed(1) : 'N/A';
+
+        statsContainer.innerHTML = `
+            <p>Total Ratings: <strong>${totalRatings}</strong></p>
+            <p>👍 Good: <strong>${goodRatings}</strong></p>
+            <p>👎 Bad: <strong>${badRatings}</strong></p>
+            <p>Satisfaction Rate: <strong>${satisfactionRate}%</strong></p>
+        `;
     }
 });
