@@ -8,18 +8,75 @@ document.addEventListener('DOMContentLoaded', () => {
     let failedLoginAttempts = 0;
     const maxLoginAttempts = 3;
 
-    // Particle animation
+    // --- Interactive Particle Animation ---
     const particleContainer = document.getElementById('particle-container');
+    const particles = [];
+    const numParticles = 75;
+    const mouse = { x: null, y: null };
+
     if (particleContainer) {
-        for (let i = 0; i < 50; i++) {
-            const particle = document.createElement('div');
-            particle.classList.add('particle');
-            particle.style.left = `${Math.random() * 100}vw`;
-            particle.style.top = `${Math.random() * 100}vh`;
-            particle.style.animationDelay = `${Math.random() * 5}s`;
-            particle.style.animationDuration = `${3 + Math.random() * 3}s`;
-            particleContainer.appendChild(particle);
+        // Create particles
+        for (let i = 0; i < numParticles; i++) {
+            const p = {
+                domElement: document.createElement('div'),
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2
+            };
+            p.domElement.classList.add('particle');
+            p.domElement.style.left = `${p.x}px`;
+            p.domElement.style.top = `${p.y}px`;
+            particleContainer.appendChild(p.domElement);
+            particles.push(p);
         }
+
+        // Track mouse movement
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        window.addEventListener('mouseout', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        // Animation loop
+        function animateParticles() {
+            for (let i = 0; i < numParticles; i++) {
+                const p = particles[i];
+                let ax = 0, ay = 0;
+
+                // Force towards mouse
+                if (mouse.x !== null) {
+                    const dx = mouse.x - p.x;
+                    const dy = mouse.y - p.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 1) {
+                        ax += dx / dist * 0.5; // Acceleration towards mouse
+                        ay += dy / dist * 0.5;
+                    }
+                }
+
+                // Add some damping/friction
+                p.vx = p.vx * 0.98 + ax;
+                p.vy = p.vy * 0.98 + ay;
+
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Boundary checks
+                if (p.x > window.innerWidth) p.x = 0;
+                if (p.x < 0) p.x = window.innerWidth;
+                if (p.y > window.innerHeight) p.y = 0;
+                if (p.y < 0) p.y = window.innerHeight;
+
+                p.domElement.style.left = `${p.x}px`;
+                p.domElement.style.top = `${p.y}px`;
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
     }
 
 

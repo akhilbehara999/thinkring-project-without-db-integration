@@ -142,6 +142,18 @@
     background-color: rgba(0, 212, 255, 0.08);
 }
 
+#user-table tbody tr {
+    opacity: 0; /* Start hidden */
+    animation: slideInRow 0.5s ease-out forwards;
+}
+
+/* Staggered delay for the first few rows */
+#user-table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+#user-table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+#user-table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+#user-table tbody tr:nth-child(4) { animation-delay: 0.4s; }
+#user-table tbody tr:nth-child(5) { animation-delay: 0.5s; }
+
 /* Module Management */
 .module-management-container {
     margin-bottom: 40px;

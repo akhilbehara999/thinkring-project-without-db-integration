@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const systemPrompt = "You are an expert text summarizer. Take the user's text and provide a concise summary formatted as a list of bullet points.";
         const result = await callOpenRouter(systemPrompt, text);
 
-        outputTextDiv.textContent = result;
+        typewriterEffect(outputTextDiv, result);
         statusDiv.textContent = 'Summary complete.';
     });
 
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const systemPrompt = "You are a text expander. Take the user's text and elaborate on it, providing a more detailed and descriptive version.";
         const result = await callOpenRouter(systemPrompt, text);
 
-        outputTextDiv.textContent = result;
+        typewriterEffect(outputTextDiv, result);
         statusDiv.textContent = 'Expansion complete.';
     });
 

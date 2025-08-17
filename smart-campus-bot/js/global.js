@@ -82,6 +82,44 @@ function speak(text) {
     }
 }
 
+// --- UI Effects ---
+
+let typingInterval; // Keep a global reference to stop it if a new animation starts
+
+/**
+ * Displays text in an element with a typewriter animation.
+ * @param {HTMLElement} element The element to display the text in.
+ * @param {string} text The text to be typed.
+ * @param {number} [speed=30] The typing speed in milliseconds.
+ */
+function typewriterEffect(element, text, speed = 30) {
+    if (!element) return;
+    // Clear any ongoing typing animation
+    if (typingInterval) {
+        clearInterval(typingInterval);
+    }
+
+    element.textContent = '';
+    let i = 0;
+
+    // Add a blinking cursor
+    element.style.borderRight = '3px solid var(--accent-color)';
+    element.style.animation = 'blink 0.7s step-end infinite';
+
+    typingInterval = setInterval(() => {
+        if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+        } else {
+            clearInterval(typingInterval);
+            // Make cursor solid after typing is done
+            setTimeout(() => {
+                element.style.animation = 'none';
+            }, 1500);
+        }
+    }, speed);
+}
+
 /**
  * A global variable to hold the speech recognition instance.
  * This allows it to be controlled from different parts of the application.
