@@ -90,3 +90,9 @@ main {
     cursor: pointer;
     float: right;
 }
+
+#report-form input.not-valid,
+#report-form textarea.not-valid {
+    border-color: var(--error-color) !important;
+    box-shadow: 0 0 10px var(--error-color) !important;
+}

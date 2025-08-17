@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Store session token and user role
             localStorage.setItem('sessionToken', `token-${Date.now()}`);
             localStorage.setItem('userRole', user.role);
+            localStorage.setItem('username', username);
 
             setTimeout(() => {
                 window.location.href = user.role === 'admin' ? 'admin.html' : 'dashboard.html';

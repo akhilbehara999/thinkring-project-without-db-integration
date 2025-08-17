@@ -96,3 +96,9 @@ main {
     background: var(--error-color);
     color: white;
 }
+
+#create-group-form input.not-valid,
+#create-group-form textarea.not-valid {
+    border-color: var(--error-color) !important;
+    box-shadow: 0 0 10px var(--error-color) !important;
+}

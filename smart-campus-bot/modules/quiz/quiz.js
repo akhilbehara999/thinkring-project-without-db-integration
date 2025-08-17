@@ -29,9 +29,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isAdminView) {
         document.getElementById('quiz-container').style.display = 'none';
-        adminView.style.display = 'block';
+        if(adminView) adminView.style.display = 'block';
         document.querySelector('.back-link').href = '../../admin.html';
         document.querySelector('h1').textContent = 'Manage Quiz';
+        renderQuizResults();
+    }
+
+    function renderQuizResults() {
+        const resultsTableBody = document.querySelector('#results-table tbody');
+        if (!resultsTableBody) return;
+        const results = JSON.parse(localStorage.getItem('quiz-results')) || [];
+        resultsTableBody.innerHTML = '';
+        results.forEach(result => {
+            const row = resultsTableBody.insertRow();
+            row.innerHTML = `
+                <td>${sanitizeInput(result.username)}</td>
+                <td>${sanitizeInput(result.score)}</td>
+                <td>${result.date}</td>
+            `;
+        });
     }
 
     if(startBtn){
@@ -159,5 +175,15 @@ document.addEventListener('DOMContentLoaded', () => {
             achievementText = 'Quiz Master!';
         }
         achievementsSpan.textContent = achievementText;
+
+        // Save results
+        const username = localStorage.getItem('username') || 'Anonymous';
+        const results = JSON.parse(localStorage.getItem('quiz-results')) || [];
+        results.push({
+            username: username,
+            score: `${score} / ${questions.length}`,
+            date: new Date().toLocaleString()
+        });
+        localStorage.setItem('quiz-results', JSON.stringify(results));
     }
 });

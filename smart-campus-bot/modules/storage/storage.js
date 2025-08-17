@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Elements ---
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const fileList = document.getElementById('file-list');
@@ -7,19 +8,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const storageStats = document.getElementById('storage-stats');
     const userView = document.getElementById('user-view');
 
+    // --- IndexedDB Setup ---
     let db;
     const dbName = 'fileStorageDB';
     const request = indexedDB.open(dbName, 1);
 
+    /**
+     * Handles database errors.
+     */
     request.onerror = (event) => {
         console.error('Database error:', event.target.errorCode);
     };
 
+    /**
+     * Handles database upgrades. This is where the schema is defined.
+     */
     request.onupgradeneeded = (event) => {
         db = event.target.result;
+        // Create an object store for our files.
+        // We use 'id' as the keyPath and autoIncrement it.
         db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
     };
 
+    /**
+     * Handles database connection success.
+     */
     request.onsuccess = (event) => {
         db = event.target.result;
         displayFiles();
@@ -36,22 +49,31 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('h1').textContent = 'Storage Analytics';
     }
 
-    if(dropZone) dropZone.addEventListener('click', () => fileInput.click());
-    if(dropZone) dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
-    if(dropZone) dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    if(dropZone) dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        handleFiles(files);
-    });
+    // --- Event Listeners ---
+    if(dropZone) {
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+    }
     if(fileInput) fileInput.addEventListener('change', () => handleFiles(fileInput.files));
     if(searchStorage) searchStorage.addEventListener('input', displayFiles);
 
 
+    // --- Core Functions ---
+
+    /**
+     * Handles the uploaded files by adding them to the IndexedDB.
+     * @param {FileList} files The files to be added.
+     */
     function handleFiles(files) {
         const transaction = db.transaction(['files'], 'readwrite');
         const objectStore = transaction.objectStore('files');

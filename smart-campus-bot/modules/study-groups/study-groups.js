@@ -60,9 +60,19 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelCreateBtn.addEventListener('click', () => showView(groupListView));
     backToGroupsBtn.addEventListener('click', () => showView(groupListView));
 
+    const groupNameInput = document.getElementById('group-name');
+
+    if(groupNameInput) groupNameInput.addEventListener('input', () => validateField(groupNameInput));
+
     createGroupForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const groupName = document.getElementById('group-name').value;
+
+        if (!validateField(groupNameInput)) {
+            speak("Please provide a group name.");
+            return;
+        }
+
+        const groupName = groupNameInput.value;
         const groupDescription = document.getElementById('group-description').value;
         const newGroup = {
             id: Date.now(),

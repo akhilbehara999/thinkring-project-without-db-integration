@@ -6,9 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const trainForm = document.getElementById('train-form');
     const userView = document.getElementById('user-view');
 
+    let context = null;
     let knowledgeBase = JSON.parse(localStorage.getItem('chatbot-kb')) || {
         "hello": "Hi there! How can I help you today?",
-        "library hours": "The library is open from 9 AM to 9 PM, Monday to Friday.",
+        "library hours": "The library is open from 9 AM to 9 PM, Monday to Friday. What else would you like to know about the library?",
         "cafeteria": "The main cafeteria is located on the ground floor of the Student Union building."
     };
 
@@ -63,18 +64,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getBotResponse(input) {
         const lowerInput = input.toLowerCase();
+
+        // Check for contextual follow-up
+        if (context === 'library' && (lowerInput.includes('weekend') || lowerInput.includes('saturday') || lowerInput.includes('sunday'))) {
+            context = null; // Reset context
+            return "The library is closed on weekends.";
+        }
+
         // Simple keyword matching
         for (const question in knowledgeBase) {
             if (lowerInput.includes(question)) {
+                // Set context based on the question
+                if (question.includes('library')) {
+                    context = 'library';
+                } else {
+                    context = null; // Reset context for other questions
+                }
                 return knowledgeBase[question];
             }
         }
 
         // "Internet search" placeholder
         if (lowerInput.startsWith('search for')) {
+            context = null;
             return `I found this on the web for "${input.substring(11)}": (This is a simulated search result).`;
         }
 
+        context = null;
         return "I'm not sure how to answer that. Try asking something else or rephrasing.";
     }
 });

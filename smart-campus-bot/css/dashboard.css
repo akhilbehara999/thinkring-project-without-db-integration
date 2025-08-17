@@ -26,6 +26,8 @@
 .logout-btn:hover {
     background: var(--accent-color);
     color: var(--background-color);
+    box-shadow: 0 0 15px var(--accent-color);
+    transform: translateY(-2px);
 }
 
 .dashboard-main {
@@ -53,6 +55,7 @@
 .module-card:hover {
     transform: translateZ(50px) rotateX(10deg) rotateY(10deg);
     box-shadow: 0 10px 30px rgba(0, 212, 255, 0.5);
+    border-color: rgba(0, 212, 255, 0.8);
 }
 
 .module-card h2 {

@@ -14,3 +14,13 @@ function sanitizeInput(input) {
     temp.textContent = input;
     return temp.innerHTML;
 }
+
+function validateField(field) {
+    if (field.value.trim() === '') {
+        field.classList.add('not-valid');
+        return false;
+    } else {
+        field.classList.remove('not-valid');
+        return true;
+    }
+}

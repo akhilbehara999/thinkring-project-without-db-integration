@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const itemList = document.getElementById('item-list');
     const adminItemList = document.getElementById('admin-item-list');
     const searchBar = document.getElementById('search-bar');
+    const itemNameInput = document.getElementById('item-name');
+    const itemDescriptionInput = document.getElementById('item-description');
 
     const userView = document.getElementById('user-view');
     const adminView = document.getElementById('admin-view');
@@ -23,14 +25,27 @@ document.addEventListener('DOMContentLoaded', () => {
         renderItems();
     }
 
-    reportForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const itemName = document.getElementById('item-name').value;
-        const itemDescription = document.getElementById('item-description').value;
-        const itemStatus = document.getElementById('item-status').value;
-        const itemImageInput = document.getElementById('item-image');
+    if(itemNameInput) itemNameInput.addEventListener('input', () => validateField(itemNameInput));
+    if(itemDescriptionInput) itemDescriptionInput.addEventListener('input', () => validateField(itemDescriptionInput));
 
-        const reader = new FileReader();
+    if(reportForm) {
+        reportForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const isNameValid = validateField(itemNameInput);
+            const isDescriptionValid = validateField(itemDescriptionInput);
+
+            if (!isNameValid || !isDescriptionValid) {
+                speak("Please fill out all required fields.");
+                return;
+            }
+
+            const itemName = itemNameInput.value;
+            const itemDescription = itemDescriptionInput.value;
+            const itemStatus = document.getElementById('item-status').value;
+            const itemImageInput = document.getElementById('item-image');
+
+            const reader = new FileReader();
         reader.onload = function(event) {
             const newItem = {
                 id: Date.now(),
