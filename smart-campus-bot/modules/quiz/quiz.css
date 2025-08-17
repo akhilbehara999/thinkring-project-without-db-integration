@@ -1,0 +1,110 @@
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background: rgba(10, 14, 39, 0.8);
+    border-bottom: 1px solid var(--accent-color);
+}
+
+h1 {
+    color: var(--accent-color);
+}
+
+.back-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    border: 1px solid var(--accent-color);
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.back-link:hover {
+    background: var(--accent-color);
+    color: var(--background-color);
+}
+
+main {
+    padding: 40px;
+    text-align: center;
+}
+
+#quiz-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: rgba(10, 14, 39, 0.8);
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid var(--accent-color);
+}
+
+#options-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.option-btn {
+    padding: 15px;
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.option-btn:hover {
+    background: var(--accent-color);
+    color: var(--background-color);
+}
+
+.option-btn.correct {
+    background: var(--success-color);
+    color: var(--background-color);
+    border-color: var(--success-color);
+}
+
+.option-btn.incorrect {
+    background: var(--error-color);
+    color: white;
+    border-color: var(--error-color);
+}
+
+#next-btn, #start-btn, #play-again-btn {
+    margin-top: 20px;
+    padding: 10px 30px;
+    background: var(--accent-color);
+    border: none;
+    color: var(--background-color);
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#add-question-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 500px;
+    margin: 40px auto 0;
+    text-align: left;
+}
+
+#add-question-form input {
+     padding: 10px;
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    border-radius: 5px;
+    color: var(--text-color);
+}
+
+#add-question-form button {
+    padding: 10px;
+    background: var(--accent-color);
+    border: none;
+    border-radius: 5px;
+    color: var(--background-color);
+    cursor: pointer;
+}

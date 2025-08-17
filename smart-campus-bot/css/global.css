@@ -1,0 +1,23 @@
+:root {
+    --background-color: #0a0e27;
+    --accent-color: #00d4ff;
+    --text-color: #ffffff;
+    --light-text-color: #e6f3ff;
+    --success-color: #ffd700;
+    --error-color: #ff4757;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 300;
+    letter-spacing: 1px;
+}
