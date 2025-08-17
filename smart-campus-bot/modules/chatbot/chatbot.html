@@ -15,6 +15,13 @@
     </div>
     <header>
         <h1>Campus AI Chatbot</h1>
+        <div class="ai-mode-toggle">
+            <span>AI Mode</span>
+            <div class="toggle-switch">
+                <input type="checkbox" id="ai-mode-toggle" class="toggle-checkbox" checked>
+                <label for="ai-mode-toggle" class="toggle-label"></label>
+            </div>
+        </div>
         <a href="../../dashboard.html" class="back-link">Back to Dashboard</a>
     </header>
 
@@ -64,6 +71,13 @@
             <div class="admin-section">
                 <h2>Conversation Analytics</h2>
                 <canvas id="chatbot-analytics-chart" width="400" height="200"></canvas>
+            </div>
+
+            <div class="admin-section">
+                <h2>User Satisfaction</h2>
+                <div id="satisfaction-stats">
+                    <!-- Stats will be populated here -->
+                </div>
             </div>
 
         </div>
