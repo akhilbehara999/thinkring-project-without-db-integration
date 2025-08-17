@@ -8,8 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const explainBtn = document.getElementById('explain-btn');
     const outputBtn = document.getElementById('output-btn');
     const resultOutput = document.getElementById('result-output');
+    const learningModeToggle = document.getElementById('learning-mode-toggle');
 
     // --- Placeholder Data and Functions ---
+    const keywords = {
+        javascript: ['function', 'let', 'const', 'var', 'return', 'if', 'else', 'for', 'while', 'async', 'await', 'new'],
+        python: ['def', 'return', 'if', 'elif', 'else', 'for', 'while', 'import', 'from', 'class'],
+        java: ['public', 'private', 'protected', 'static', 'void', 'int', 'String', 'new', 'return', 'if', 'else', 'for'],
+        c: ['int', 'char', 'void', 'return', 'if', 'else', 'for', 'while', '#include']
+    };
     const explanations = {
         javascript: {
             'for': 'This is a for loop, which iterates over a block of code a number of times.',
@@ -38,15 +45,71 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function simpleJsLinter(code) {
         let errors = [];
-        if (!code.includes(';')) {
-            errors.push('Warning: Missing semicolons may lead to unexpected results.');
-        }
-        if (code.match(/let|const|var/g)?.length > 10) {
-            errors.push('Info: Consider refactoring code with many variable declarations.');
-        }
-        return errors.length > 0 ? errors.join('\\n') : 'No obvious issues found.';
+        const lines = code.split('\n');
+
+        lines.forEach((line, index) => {
+            const trimmedLine = line.trim();
+            // Check for loose equality
+            if (line.includes('==') && !line.includes('===')) {
+                errors.push(`Line ${index + 1}: [Warning] Use of loose equality (==). Consider using strict equality (===).`);
+            }
+            // Check for 'var'
+            if (/\bvar\b/.test(line)) {
+                errors.push(`Line ${index + 1}: [Info] Use of 'var'. Consider using 'let' or 'const'.`);
+            }
+            // Check for missing semicolon on lines that are not blocks or empty
+            if (trimmedLine.length > 0 && !trimmedLine.endsWith(';') && !trimmedLine.endsWith('{') && !trimmedLine.endsWith('}')) {
+                errors.push(`Line ${index + 1}: [Info] Potentially missing semicolon.`);
+            }
+        });
+
+        return errors.length > 0 ? errors.join('\n') : 'No obvious issues found.';
     }
     // --- End of Placeholder Data ---
+
+
+    /**
+     * Calls the OpenRouter API to get a code explanation.
+     * @param {string} lang The programming language of the code.
+     * @param {string} code The code snippet to explain.
+     * @returns {Promise<string>} The AI's explanation or an error message.
+     */
+    async function callOpenRouterForCode(lang, code) {
+        const apiKey = localStorage.getItem('book-tools-api-key'); // Reuse the same key
+        if (!apiKey) {
+            return "Error: API Key not set. Please configure it in the Book Tools admin panel.";
+        }
+
+        const systemPrompt = `You are an expert ${lang} teacher. Explain the following code snippet clearly and concisely. Focus on the core concepts and logic.`;
+
+        try {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${apiKey}`,
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                  "model": "deepseek/deepseek-r1-0528:free",
+                  "messages": [
+                    { "role": "system", "content": systemPrompt },
+                    { "role": "user", "content": code }
+                  ]
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                return `API Error: ${errorData.error.message}`;
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+
+        } catch (error) {
+            return "Error: Could not connect to the AI service.";
+        }
+    }
 
 
     // --- Admin View Logic ---
@@ -59,6 +122,25 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelector('.back-link').href = '../../admin.html';
         document.querySelector('h1').textContent = 'Manage Code Explainer';
         renderLanguageChart();
+        loadApiKey();
+    }
+
+    // --- API Key Logic ---
+    const apiKeyForm = document.getElementById('api-key-form');
+    if (apiKeyForm) {
+        apiKeyForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const apiKey = document.getElementById('api-key-input').value;
+            localStorage.setItem('book-tools-api-key', apiKey); // Use shared key
+            alert('API Key saved!');
+        });
+    }
+
+    function loadApiKey() {
+        const apiKey = localStorage.getItem('book-tools-api-key');
+        if (apiKey) {
+            document.getElementById('api-key-input').value = apiKey;
+        }
     }
 
     // --- Template Form Logic ---
@@ -97,31 +179,38 @@ document.addEventListener('DOMContentLoaded', () => {
         resultOutput.textContent = `--- ANALYSIS ---\\n${analysisResult}`;
     });
 
-    explainBtn.addEventListener('click', () => {
+    explainBtn.addEventListener('click', async () => {
         const code = codeInput.value;
         const language = languageSelect.value;
         logLanguageUse(language);
-        let explanation = 'Explanation not available for this language.';
 
-        if (explanations[language]) {
-            explanation = 'Key concepts found:\\n';
-            for (const keyword in explanations[language]) {
-                if (code.includes(keyword)) {
-                    explanation += `- ${keyword}: ${explanations[language][keyword]}\\n`;
-                }
-            }
+        if (code.trim() === '') {
+            alert('Please enter some code to explain.');
+            return;
         }
-        resultOutput.textContent = `--- EXPLANATION ---\\n${explanation}`;
+
+        resultOutput.textContent = '🧠 AI is thinking...';
+
+        const explanation = await callOpenRouterForCode(language, code);
+
+        resultOutput.textContent = `--- AI EXPLANATION ---\n${explanation}`;
     });
 
     outputBtn.addEventListener('click', () => {
         const language = languageSelect.value;
+        const code = codeInput.value;
         logLanguageUse(language);
-        let simulatedOutput = 'Simulated output not available for this language.';
 
-        if (outputs[language]) {
-            simulatedOutput = outputs[language];
+        let simulatedOutput = `[${language.toUpperCase()}] Simulation complete. No direct output.`;
+
+        if (code.toLowerCase().includes('hello, world') || code.toLowerCase().includes('hello world')) {
+            simulatedOutput = 'Hello, World!';
+        } else if (code.includes('for') && (code.includes('i < 5') || code.includes('i in range(5)'))) {
+            simulatedOutput = '0\n1\n2\n3\n4';
+        } else if (code.includes('function') || code.includes('def')) {
+            simulatedOutput = '[Function defined, no output to display unless called.]';
         }
+
         resultOutput.textContent = `--- SIMULATED OUTPUT ---\\n${simulatedOutput}`;
     });
 
@@ -151,5 +240,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         drawBarChart('language-chart', chartData, { barColor: '#9c88ff' });
+    }
+
+
+    // --- Learning Mode Logic ---
+    function highlightKeywords() {
+        if (!learningModeToggle.checked) {
+            resultOutput.innerHTML = ''; // Clear output if mode is off
+            return;
+        }
+
+        const lang = languageSelect.value;
+        const code = codeInput.value;
+        const langKeywords = keywords[lang] || [];
+
+        if (langKeywords.length === 0) {
+            resultOutput.textContent = sanitizeInput(code);
+            return;
+        }
+
+        // Create a regex to find all keywords
+        const regex = new RegExp(`\\b(${langKeywords.join('|')})\\b`, 'g');
+        const highlightedCode = sanitizeInput(code).replace(regex, '<span class="highlight-keyword">$1</span>');
+
+        resultOutput.innerHTML = highlightedCode;
+    }
+
+    if (learningModeToggle) {
+        learningModeToggle.addEventListener('change', highlightKeywords);
+    }
+    if (codeInput) {
+        // Also update highlight as user types if mode is on
+        codeInput.addEventListener('keyup', highlightKeywords);
     }
 });
