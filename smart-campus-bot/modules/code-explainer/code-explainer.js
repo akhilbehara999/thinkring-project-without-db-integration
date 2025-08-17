@@ -166,6 +166,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     analyzeBtn.addEventListener('click', () => {
+        learningModeToggle.checked = false; // Turn off learning mode
+        highlightKeywords(); // Clear any existing highlight
+
         const code = codeInput.value;
         const language = languageSelect.value;
         logLanguageUse(language);
@@ -180,6 +183,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     explainBtn.addEventListener('click', async () => {
+        learningModeToggle.checked = false; // Turn off learning mode
+        highlightKeywords(); // Clear any existing highlight
+
         const code = codeInput.value;
         const language = languageSelect.value;
         logLanguageUse(language);
@@ -189,14 +195,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        resultOutput.textContent = '🧠 AI is thinking...';
+        resultOutput.textContent = ''; // Clear previous output
+        const thinking_span = document.createElement('span');
+        thinking_span.textContent = '🧠 AI is thinking...';
+        resultOutput.appendChild(thinking_span);
 
         const explanation = await callOpenRouterForCode(language, code);
 
-        resultOutput.textContent = `--- AI EXPLANATION ---\n${explanation}`;
+        // Clear "thinking" message and start typing
+        thinking_span.remove();
+        typewriterEffect(resultOutput, `--- AI EXPLANATION ---\n${explanation}`);
     });
 
     outputBtn.addEventListener('click', () => {
+        learningModeToggle.checked = false; // Turn off learning mode
+        highlightKeywords(); // Clear any existing highlight
+
         const language = languageSelect.value;
         const code = codeInput.value;
         logLanguageUse(language);

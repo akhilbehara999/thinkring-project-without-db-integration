@@ -129,8 +129,9 @@ main {
     border-radius: 10px;
     border: 1px solid var(--accent-color);
     min-height: 100px;
-    white-space: pre-wrap;
     font-family: 'Courier New', Courier, monospace;
+    white-space: pre-wrap;      /* Wraps long lines of text */
+    word-break: break-all;      /* Breaks long words that would overflow */
 }
 
 /* Admin View Styles */
