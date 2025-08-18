@@ -83,6 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             reportForm.reset();
             imagePreview.style.display = 'none';
+
+            // Reset filters to ensure the new item is visible
+            if(searchBar) searchBar.value = '';
+            if(filterStatusEl) filterStatusEl.value = 'all';
+            if(sortByEl) sortByEl.value = 'newest';
+
             renderItems(); // Re-render the user's view
     });
 
