@@ -1,185 +1,290 @@
-header {
+/* QUIZ MODULE STYLES - FUTURISTIC GAMIFIED REDESIGN */
+
+/* General Layout & Background */
+:root {
+    --holographic-border-color: rgba(0, 255, 255, 0.5);
+    --holographic-bg-color: rgba(10, 25, 50, 0.4);
+    --holographic-glow-color: rgba(0, 255, 255, 0.8);
+    --gold-color: #FFD700;
+    --gold-glow-color: rgba(255, 215, 0, 0.8);
+    --error-glow-color: rgba(255, 70, 70, 0.8);
+    --card-border-radius: 15px;
+    --transition-speed: 0.4s;
+}
+
+body {
+    background: var(--background-color);
+    background-image: var(--background-gradient-dark);
+    overflow: hidden; /* Prevent scrollbars during transitions */
+    perspective: 1000px; /* For 3D effects */
+}
+
+#particle-container {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
+
+main.container {
+    padding: 2rem;
+    height: calc(100vh - 120px); /* Adjust based on header height */
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 20px 40px;
-    background: rgba(10, 14, 39, 0.8);
-    border-bottom: 1px solid var(--accent-color);
-}
-
-h1 {
-    color: var(--accent-color);
-}
-
-.back-link {
-    color: var(--accent-color);
-    text-decoration: none;
-    border: 1px solid var(--accent-color);
-    padding: 10px 15px;
-    border-radius: 5px;
-    transition: background 0.3s, color 0.3s;
-}
-
-.back-link:hover {
-    background: var(--accent-color);
-    color: var(--background-color);
-}
-
-main {
-    padding: 40px;
-    text-align: center;
+    justify-content: center;
 }
 
 #quiz-container {
+    width: 100%;
     max-width: 800px;
-    margin: 0 auto;
-    background: rgba(10, 14, 39, 0.8);
-    padding: 30px;
-    border-radius: 10px;
-    border: 1px solid var(--accent-color);
+    position: relative;
 }
 
-#options-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-top: 20px;
+/* Screen Transitions */
+.quiz-screen {
+    position: absolute;
+    width: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.95);
+    transition: opacity var(--transition-speed) ease-out, transform var(--transition-speed) ease-out, visibility 0s var(--transition-speed);
+}
+.quiz-screen.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    transition-delay: 0.2s;
 }
 
-.option-btn {
-    padding: 15px;
-    background: transparent;
-    border: 1px solid var(--accent-color);
-    color: var(--accent-color);
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background 0.3s;
+/* Holographic Card Base */
+.holographic-card {
+    background: var(--holographic-bg-color);
+    border: 1px solid var(--holographic-border-color);
+    border-radius: var(--card-border-radius);
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+    position: relative;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
 }
 
-.option-btn:hover {
-    background: var(--accent-color);
-    color: var(--background-color);
+/* Start Screen */
+.start-card {
+    transform-style: preserve-3d;
+    transition: transform 0.2s ease;
 }
-
-.option-btn.correct {
-    background: var(--success-color);
-    color: var(--background-color);
-    border-color: var(--success-color);
+.start-title {
+    font-size: 2.5rem;
+    color: var(--accent-color-light);
+    text-shadow: 0 0 10px var(--holographic-glow-color);
 }
-
-.option-btn.incorrect {
-    background: var(--error-color);
-    color: white;
-    border-color: var(--error-color);
+.start-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-color-secondary);
+    margin-bottom: 2rem;
 }
-
-#next-btn, #start-btn, #play-again-btn {
-    margin-top: 20px;
-    padding: 10px 30px;
-    background: var(--accent-color);
-    border: none;
-    color: var(--background-color);
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-#add-question-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 500px;
-    margin: 40px auto 0;
-    text-align: left;
-}
-
-#add-question-form input {
-     padding: 10px;
-    background: transparent;
-    border: 1px solid var(--accent-color);
-    border-radius: 5px;
+.holographic-select {
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--holographic-border-color);
     color: var(--text-color);
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
 }
-
-#add-question-form button {
-    padding: 10px;
+.start-btn {
+    margin-top: 1rem;
+    padding: 1rem 3rem;
+    font-size: 1.5rem;
+    border-radius: 50px;
+    border-width: 2px;
+    position: relative;
+    overflow: hidden;
+}
+.start-btn:hover {
+    box-shadow: 0 0 30px var(--holographic-glow-color);
+}
+.start-btn span {
+    position: relative;
+    z-index: 1;
+}
+.start-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 0; height: 0;
     background: var(--accent-color);
-    border: none;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+}
+.start-btn:hover::before {
+    width: 200%;
+    height: 200%;
+}
+
+/* Quiz Screen */
+.quiz-header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem; }
+#progress-bar {
+    flex-grow: 1;
+    height: 10px;
+    background: rgba(0, 255, 255, 0.1);
     border-radius: 5px;
-    color: var(--background-color);
-    cursor: pointer;
+    overflow: hidden;
 }
-
-#results-table-container {
-    margin-top: 40px;
-    text-align: left;
-}
-
-#results-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-#results-table th, #results-table td {
-    border: 1px solid var(--accent-color);
-    padding: 10px 15px;
-    text-align: left;
-}
-
-#results-table th {
-    background-color: rgba(0, 212, 255, 0.1);
-}
-
-/* Admin Section Layout */
-.admin-section {
-    background: rgba(10, 14, 39, 0.8);
-    border: 1px solid var(--accent-color);
-    padding: 20px 30px;
-    border-radius: 10px;
-    margin-bottom: 40px;
-    text-align: left;
-}
-
-.admin-section h2 {
-    margin-top: 0;
-    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-}
-
-/* Questions Table */
-#questions-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-#questions-table th, #questions-table td {
-    padding: 12px 15px;
-    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
-}
-
-#questions-table th {
-    text-align: left;
-}
-
-#questions-table .action-btn {
-    padding: 5px 10px;
-    border: none;
+#progress-bar-inner {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-color-light));
     border-radius: 5px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px var(--holographic-glow-color);
+}
+.score-display {
+    color: var(--accent-color-light);
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-shadow: 0 0 5px var(--holographic-glow-color);
+}
+.question-card {
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+    animation: question-enter 0.5s ease forwards;
+    border-width: 2px;
+    animation-fill-mode: both;
+}
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+.option-btn {
+    padding: 1.2rem;
+    font-size: 1.1rem;
+    background: transparent;
+    border: 1px solid var(--holographic-border-color);
+    color: var(--text-color);
     cursor: pointer;
-    color: white;
-    margin-right: 5px;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, background 0.3s, border-color 0.3s;
+}
+.option-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    border-color: var(--accent-color);
+    background: rgba(0, 255, 255, 0.1);
+}
+.option-btn.correct {
+    border-color: var(--gold-color);
+    animation: correct-answer-anim 0.8s ease forwards;
+}
+.option-btn.incorrect {
+    border-color: var(--error-color);
+    animation: incorrect-answer-anim 0.6s ease forwards;
+}
+.option-btn:disabled { color: var(--text-color-secondary); }
+
+/* Results Screen */
+.results-card { text-align: center; }
+.results-title { font-size: 2.5rem; color: var(--accent-color-light); }
+.final-score-text { font-size: 1.2rem; margin-top: 1rem; }
+.final-score-value {
+    font-size: 4rem;
+    font-weight: bold;
+    color: var(--gold-color);
+    text-shadow: 0 0 15px var(--gold-glow-color);
+    margin-bottom: 2rem;
+}
+.achievement-hologram {
+    display: none; /* Hidden by default, shown by JS */
+    margin: 2rem auto;
+    position: relative;
+    width: 200px;
+    height: 150px;
+}
+.hologram-base {
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 10px;
+    background: radial-gradient(ellipse at center, var(--accent-color) 0%, transparent 70%);
+    border-radius: 50%;
+}
+.hologram-projection {
+    position: absolute;
+    bottom: 10px; left: 50%;
+    transform: translateX(-50%) perspective(200px) rotateX(45deg);
+    width: 150px; height: 100px;
+    background: linear-gradient(to top, rgba(0, 255, 255, 0.3) 0%, transparent 100%);
+    border-top: 2px solid var(--accent-color);
+    text-align: center;
+    color: var(--accent-color-light);
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    animation: hologram-appear 1s 0.5s ease-out forwards;
 }
 
-#questions-table .edit-btn { background-color: var(--success-color); }
-#questions-table .delete-btn { background-color: var(--error-color); }
-
-#upload-btn {
-    margin-left: 10px;
-    padding: 10px 20px;
-    background: var(--accent-color);
-    border: none;
-    color: var(--background-color);
-    cursor: pointer;
-    border-radius: 5px;
+/* Animations */
+@keyframes question-enter {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
 }
+
+@keyframes correct-answer-anim {
+    0% { transform: scale(1); background: transparent; }
+    30% { background: rgba(255, 215, 0, 0.3); box-shadow: 0 0 30px var(--gold-glow-color); }
+    100% { transform: scale(1); background: rgba(255, 215, 0, 0.2); border-color: var(--gold-color); }
+}
+
+@keyframes incorrect-answer-anim {
+    0% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-10px); }
+    40%, 80% { transform: translateX(10px); }
+    100% { transform: translateX(0); background: rgba(255, 70, 70, 0.2); border-color: var(--error-color); }
+}
+
+@keyframes hologram-appear {
+    from { opacity: 0; transform: translateX(-50%) perspective(200px) rotateX(45deg) scaleY(0); }
+    to { opacity: 1; transform: translateX(-50%) perspective(200px) rotateX(45deg) scaleY(1); }
+}
+
+/* Confetti Holograms */
+#confetti-container {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 999;
+}
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: var(--accent-color);
+    opacity: 0;
+    border: 1px solid var(--holographic-border-color);
+}
+.confetti.gold { background-color: var(--gold-color); }
+
+/* Admin view styling */
+#admin-view .holographic-card { margin-bottom: 2rem; }
+#admin-view .full-width { grid-column: 1 / -1; }
+.holographic-form { display: flex; flex-direction: column; gap: 1rem; }
+.form-actions { display: flex; gap: 1rem; justify-content: flex-end; }
+#admin-view .table-wrapper { max-height: 300px; overflow-y: auto; }
+#admin-view table { width: 100%; border-collapse: collapse; }
+#admin-view th, #admin-view td { padding: 0.8rem; border-bottom: 1px solid var(--holographic-border-color); }
+#admin-view th { color: var(--accent-color-light); }
+#admin-view .holographic-btn.secondary { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: white; }

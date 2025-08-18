@@ -62,7 +62,41 @@ function setupGlobalVoiceControl() {
 }
 
 // Add the button as soon as the DOM is ready
-document.addEventListener('DOMContentLoaded', setupGlobalVoiceControl);
+document.addEventListener('DOMContentLoaded', () => {
+    setupGlobalVoiceControl();
+    setupThemeToggle();
+});
+
+/**
+ * Creates and manages the global theme toggle button.
+ */
+function setupThemeToggle() {
+    const themeToggleBtn = document.createElement('button');
+    themeToggleBtn.id = 'global-theme-btn';
+    themeToggleBtn.className = 'global-theme-btn';
+    document.body.appendChild(themeToggleBtn);
+
+    let currentTheme = localStorage.getItem('theme') || 'dark';
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme === 'light') {
+            themeToggleBtn.textContent = '🌙';
+            themeToggleBtn.title = 'Switch to Dark Mode';
+        } else {
+            themeToggleBtn.textContent = '☀️';
+            themeToggleBtn.title = 'Switch to Light Mode';
+        }
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', currentTheme);
+        applyTheme(currentTheme);
+    });
+
+    applyTheme(currentTheme); // Apply initial theme
+}
 
 
 // --- SPEECH SYNTHESIS & RECOGNITION ---

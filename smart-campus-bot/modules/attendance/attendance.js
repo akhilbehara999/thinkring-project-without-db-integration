@@ -1,186 +1,232 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Element Selection ---
     const userView = document.getElementById('user-view');
     const adminView = document.getElementById('admin-view');
     const rollNumberSearch = document.getElementById('roll-number-search');
+    const searchBtn = document.getElementById('search-btn');
     const attendanceDisplay = document.getElementById('attendance-display');
     const manualEntryForm = document.getElementById('manual-entry-form');
     const attendanceFile = document.getElementById('attendance-file');
     const processFileBtn = document.getElementById('process-file-btn');
     const fileProcessingStatus = document.getElementById('file-processing-status');
+    const recordSearchInput = document.getElementById('record-search');
+    const attendanceTableBody = document.querySelector('#attendance-table tbody');
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+    const dropZone = document.getElementById('drop-zone');
 
-    let attendanceData = JSON.parse(localStorage.getItem('attendance-data')) || {};
-
+    // --- Data & State ---
+    let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || generateMockData();
     const urlParams = new URLSearchParams(window.location.search);
     const isAdminView = urlParams.get('view') === 'admin';
 
-    const recordSearchInput = document.getElementById('record-search');
-    const attendanceTableBody = document.querySelector('#attendance-table tbody');
-
+    // --- Initial Setup ---
+    setupView();
+    setupEventListeners();
     if (isAdminView) {
-        userView.style.display = 'none';
-        adminView.style.display = 'block';
-        document.querySelector('.back-link').href = '../../admin.html';
-        document.querySelector('h1').textContent = 'Manage Attendance';
         renderAttendanceTable();
-    } else {
-        userView.style.display = 'block';
-        adminView.style.display = 'none';
+        updateAnalytics();
+        renderTrendChart();
     }
 
-    if(rollNumberSearch){
-        rollNumberSearch.addEventListener('input', (e) => {
-            const rollNumber = e.target.value;
-            if (attendanceData[rollNumber]) {
-                const records = attendanceData[rollNumber];
-                const presentCount = records.filter(r => r.status === 'present').length;
-                const totalCount = records.length;
-                const percentage = totalCount > 0 ? (presentCount / totalCount) * 100 : 0;
+    // --- Functions ---
 
-                attendanceDisplay.innerHTML = `
-                    <h3>Attendance for ${rollNumber}</h3>
-                    <p>Present: ${presentCount}</p>
-                    <p>Total Classes: ${totalCount}</p>
-                    <p>Percentage: ${percentage.toFixed(2)}%</p>
-                `;
-            } else {
-                attendanceDisplay.innerHTML = '<p>No records found for this roll number.</p>';
-            }
-        });
+    function setupView() {
+        if (isAdminView) {
+            userView.style.display = 'none';
+            adminView.style.display = 'block';
+            document.querySelector('.back-link').href = '../../admin.html';
+            document.querySelector('.header-title').textContent = 'Attendance Matrix';
+        } else {
+            userView.style.display = 'block';
+            adminView.style.display = 'none';
+        }
     }
 
-    if(manualEntryForm){
-        manualEntryForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const rollNumber = document.getElementById('roll-number').value;
-            const date = document.getElementById('date').value;
-            const status = document.getElementById('status').value;
+    function setupEventListeners() {
+        if (searchBtn) searchBtn.addEventListener('click', displayUserAttendance);
+        if (rollNumberSearch) rollNumberSearch.addEventListener('keypress', (e) => e.key === 'Enter' && displayUserAttendance());
+        if (manualEntryForm) manualEntryForm.addEventListener('submit', handleManualEntry);
+        if (processFileBtn) processFileBtn.addEventListener('click', handleFileProcessing);
+        if (recordSearchInput) recordSearchInput.addEventListener('input', () => renderAttendanceTable());
+        if (exportCsvBtn) exportCsvBtn.addEventListener('click', handleExport);
+        if (attendanceTableBody) attendanceTableBody.addEventListener('change', handleTableChange);
 
-            if (!attendanceData[rollNumber]) {
-                attendanceData[rollNumber] = [];
-            }
+        // Drag and Drop Listeners
+        if (dropZone) {
+            dropZone.addEventListener('click', () => attendanceFile.click());
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    attendanceFile.files = e.dataTransfer.files;
+                    dropZone.classList.add('ripple');
+                    setTimeout(() => dropZone.classList.remove('ripple'), 1000);
+                    fileProcessingStatus.textContent = `File selected: ${e.dataTransfer.files[0].name}`;
+                }
+            });
+        }
+    }
+
+    function displayUserAttendance() {
+        const rollNumber = rollNumberSearch.value.trim().toUpperCase();
+        if (!rollNumber) {
+            showValidationError(rollNumberSearch, 'Please enter a roll number.');
+            return;
+        }
+
+        if (attendanceData[rollNumber]) {
+            const records = attendanceData[rollNumber];
+            const presentCount = records.filter(r => r.status === 'present').length;
+            const totalCount = records.length;
+            const percentage = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
+
+            attendanceDisplay.innerHTML = `
+                <div class="holographic-card result-card animate-in">
+                    <h3 class="result-title">Report for ${rollNumber}</h3>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <span class="result-label">Present Days</span>
+                            <span class="result-value">${presentCount}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Total Days</span>
+                            <span class="result-value">${totalCount}</span>
+                        </div>
+                    </div>
+                    <div class="result-summary">
+                        <div class="progress-ring" data-value="${percentage}">
+                             <svg class="progress-ring__svg">
+                                <circle class="progress-ring__circle-bg" cx="60" cy="60" r="54"></circle>
+                                <circle class="progress-ring__circle" cx="60" cy="60" r="54"></circle>
+                            </svg>
+                            <span class="progress-ring__text">${percentage}%</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            // Animate the newly created progress ring
+            const ring = attendanceDisplay.querySelector('.progress-ring');
+            animateProgressRing(ring);
+        } else {
+            attendanceDisplay.innerHTML = `<p class="error-message animate-in">No records found for this roll number.</p>`;
+        }
+    }
+
+    function handleManualEntry(e) {
+        e.preventDefault();
+        const rollNumberInput = document.getElementById('roll-number');
+        const dateInput = document.getElementById('date');
+        const statusInput = document.getElementById('status');
+
+        const rollNumber = rollNumberInput.value.trim().toUpperCase();
+        const date = dateInput.value;
+        const status = statusInput.value;
+
+        if(!rollNumber || !date) {
+            showValidationError(rollNumberInput);
+            showValidationError(dateInput);
+            return;
+        }
+
+        if (!attendanceData[rollNumber]) {
+            attendanceData[rollNumber] = [];
+        }
+        // Avoid duplicate entries for the same date
+        const existingRecordIndex = attendanceData[rollNumber].findIndex(r => r.date === date);
+        if(existingRecordIndex > -1) {
+            attendanceData[rollNumber][existingRecordIndex].status = status;
+        } else {
             attendanceData[rollNumber].push({ date, status });
-            localStorage.setItem('attendance-data', JSON.stringify(attendanceData));
-            alert('Record added successfully.');
-            manualEntryForm.reset();
-        });
+        }
+
+        saveData();
+        showNotification('Record added successfully.');
+        manualEntryForm.reset();
+        renderAttendanceTable();
+        updateAnalytics();
     }
 
-    if(processFileBtn){
-        processFileBtn.addEventListener('click', () => {
-            const file = attendanceFile.files[0];
-            if (!file) {
-                alert('Please select a file.');
-                return;
-            }
+    function handleFileProcessing() {
+        const file = attendanceFile.files[0];
+        if (!file) {
+            showNotification('Please select a file first.', 'error');
+            return;
+        }
 
-            fileProcessingStatus.textContent = 'Processing...';
-            const fileType = file.type;
+        fileProcessingStatus.textContent = 'Processing...';
+        const fileType = file.type;
 
+        // Simulate processing
+        setTimeout(() => {
             if (fileType === 'text/csv') {
                 parseCSV(file);
-            } else if (fileType === 'application/pdf') {
-                parsePDF(file);
-            } else if (fileType.startsWith('image/')) {
-                parseImage(file);
             } else {
-                alert('Unsupported file type.');
+                showNotification('File type not yet supported for auto-parsing.', 'warning');
                 fileProcessingStatus.textContent = '';
             }
-        });
+        }, 1000);
     }
-
 
     function parseCSV(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
             const text = e.target.result;
-            const rows = text.split('\\n').slice(1); // Skip header
+            const rows = text.split(/\r?\n/).slice(1); // Skip header, handle Windows/Unix newlines
+            let addedCount = 0;
             rows.forEach(row => {
                 const [rollNumber, date, status] = row.split(',');
                 if (rollNumber && date && status) {
-                    if (!attendanceData[rollNumber]) {
-                        attendanceData[rollNumber] = [];
+                    const cleanRoll = rollNumber.trim().toUpperCase();
+                    if (!attendanceData[cleanRoll]) {
+                        attendanceData[cleanRoll] = [];
                     }
-                    attendanceData[rollNumber].push({ date, status: status.trim() });
+                    attendanceData[cleanRoll].push({ date: date.trim(), status: status.trim().toLowerCase() });
+                    addedCount++;
                 }
             });
-            localStorage.setItem('attendance-data', JSON.stringify(attendanceData));
-            fileProcessingStatus.textContent = 'CSV processed successfully.';
+            saveData();
+            fileProcessingStatus.textContent = '';
+            showNotification(`${addedCount} records from CSV processed successfully.`);
+            renderAttendanceTable();
+            updateAnalytics();
         };
         reader.readAsText(file);
     }
 
-    function parsePDF(file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const data = new Uint8Array(e.target.result);
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js`;
-            pdfjsLib.getDocument(data).promise.then(pdf => {
-                let textContent = '';
-                const numPages = pdf.numPages;
-                let promises = [];
-                for (let i = 1; i <= numPages; i++) {
-                    promises.push(pdf.getPage(i).then(page => page.getTextContent()));
-                }
-                Promise.all(promises).then(contents => {
-                    contents.forEach(content => {
-                        content.items.forEach(item => {
-                            textContent += item.str + ' ';
-                        });
-                    });
-                    // This is a very basic way to parse text from a PDF.
-                    // A more robust solution would be needed for complex PDFs.
-                    // Assuming a format of "rollNumber,date,status" in the text.
-                    console.log('PDF Text:', textContent);
-                    alert('PDF parsing is for demonstration. Check console for extracted text.');
-                    fileProcessingStatus.textContent = 'PDF processed.';
-                });
-            });
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    function parseImage(file) {
-        Tesseract.recognize(
-            file,
-            'eng',
-            { logger: m => {
-                fileProcessingStatus.textContent = `${m.status}: ${Math.round(m.progress * 100)}%`;
-                console.log(m)
-            } }
-        ).then(({ data: { text } }) => {
-            console.log('OCR Text:', text);
-            alert('Image OCR is for demonstration. Check console for extracted text.');
-            fileProcessingStatus.textContent = 'Image processed.';
-        });
-    }
-
-    /**
-     * Renders the consolidated attendance data into the admin table.
-     */
     function renderAttendanceTable() {
         if (!attendanceTableBody) return;
 
         const searchTerm = recordSearchInput.value.toLowerCase();
         let flatData = [];
 
-        // Flatten the data and add unique identifiers for editing
         for (const rollNo in attendanceData) {
             attendanceData[rollNo].forEach((record, index) => {
                 flatData.push({ rollNo, ...record, id: `${rollNo}-${index}` });
             });
         }
+        // Sort by date descending
+        flatData.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-        const filteredData = flatData.filter(record => record.rollNo.toLowerCase().includes(searchTerm));
+        const filteredData = flatData.filter(record =>
+            record.rollNo.toLowerCase().includes(searchTerm) ||
+            record.date.includes(searchTerm)
+        );
 
         attendanceTableBody.innerHTML = '';
-        filteredData.forEach(record => {
+        filteredData.forEach((record, index) => {
             const row = attendanceTableBody.insertRow();
+            row.style.animationDelay = `${index * 0.05}s`;
             row.innerHTML = `
                 <td>${sanitizeInput(record.rollNo)}</td>
                 <td>${sanitizeInput(record.date)}</td>
+                <td><span class="status-badge status-${record.status}">${sanitizeInput(record.status)}</span></td>
                 <td>
-                    <select class="status-select" data-id="${record.id}">
+                    <select class="holographic-select status-select" data-id="${record.id}">
                         <option value="present" ${record.status === 'present' ? 'selected' : ''}>Present</option>
                         <option value="absent" ${record.status === 'absent' ? 'selected' : ''}>Absent</option>
                     </select>
@@ -189,56 +235,132 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (recordSearchInput) {
-        recordSearchInput.addEventListener('input', renderAttendanceTable);
-    }
+    function handleTableChange(e) {
+        if (e.target.classList.contains('status-select')) {
+            const selectEl = e.target;
+            const recordId = selectEl.dataset.id;
+            const newStatus = selectEl.value;
+            const [rollNo, recordIndex] = recordId.split('-');
 
-    const exportCsvBtn = document.getElementById('export-csv-btn');
-
-    if (attendanceTableBody) {
-        attendanceTableBody.addEventListener('change', (e) => {
-            if (e.target.classList.contains('status-select')) {
-                const selectEl = e.target;
-                const recordId = selectEl.dataset.id;
-                const newStatus = selectEl.value;
-
-                // Find the original record in our nested data structure
-                const [rollNo, recordIndex] = recordId.split('-');
-
-                if (attendanceData[rollNo] && attendanceData[rollNo][recordIndex]) {
-                    // Update the status
-                    attendanceData[rollNo][recordIndex].status = newStatus;
-                    // Save the entire updated object back to localStorage
-                    localStorage.setItem('attendance-data', JSON.stringify(attendanceData));
-                }
+            if (attendanceData[rollNo] && attendanceData[rollNo][recordIndex]) {
+                attendanceData[rollNo][recordIndex].status = newStatus;
+                saveData();
+                renderAttendanceTable(); // Re-render to update status badge
+                updateAnalytics();
+                showNotification(`Record for ${rollNo} updated.`);
             }
-        });
+        }
     }
 
-    if (exportCsvBtn) {
-        exportCsvBtn.addEventListener('click', () => {
+    function handleExport() {
+        exportCsvBtn.classList.add('loading');
+
+        setTimeout(() => {
             const headers = ['Roll Number', 'Date', 'Status'];
             let csvContent = headers.join(',') + '\n';
 
-            // Flatten the data for CSV export
             for (const rollNo in attendanceData) {
                 attendanceData[rollNo].forEach(record => {
-                    const row = [rollNo, record.date, record.status];
-                    csvContent += row.join(',') + '\n';
+                    csvContent += [rollNo, record.date, record.status].join(',') + '\n';
                 });
             }
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
-            if (link.download !== undefined) {
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                link.setAttribute('download', 'attendance_report.csv');
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+            link.href = URL.createObjectURL(blob);
+            link.download = 'attendance_report.csv';
+            link.click();
+            URL.revokeObjectURL(link.href);
+
+            exportCsvBtn.classList.remove('loading');
+            exportCsvBtn.classList.add('complete');
+
+            setTimeout(() => exportCsvBtn.classList.remove('complete'), 2000);
+        }, 1500); // Simulate generation time
+    }
+
+    function updateAnalytics() {
+        const rings = document.querySelectorAll('.analytics-card .progress-ring');
+        let totalRecords = 0;
+        let totalPresent = 0;
+
+        for (const rollNo in attendanceData) {
+            totalRecords += attendanceData[rollNo].length;
+            totalPresent += attendanceData[rollNo].filter(r => r.status === 'present').length;
+        }
+
+        const overallPresence = totalRecords > 0 ? Math.round((totalPresent / totalRecords) * 100) : 0;
+        const absenceRate = 100 - overallPresence;
+
+        rings.forEach(ring => {
+            if (ring.dataset.color === 'gold') { // Absence rate
+                ring.dataset.value = absenceRate;
+            } else { // Overall presence
+                ring.dataset.value = overallPresence;
             }
+            animateProgressRing(ring);
         });
+    }
+
+    function animateProgressRing(ringElement) {
+        const circle = ringElement.querySelector('.progress-ring__circle');
+        const text = ringElement.querySelector('.progress-ring__text');
+        const radius = circle.r.baseVal.value;
+        const circumference = 2 * Math.PI * radius;
+        const value = parseInt(ringElement.dataset.value, 10);
+
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        const offset = circumference - (value / 100) * circumference;
+        circle.style.strokeDashoffset = offset;
+
+        // Animate text
+        let start = 0;
+        const duration = 1500;
+        const step = (timestamp) => {
+            if (!start) start = timestamp;
+            const progress = timestamp - start;
+            const current = Math.min(Math.floor(progress / duration * value), value);
+            text.textContent = `${current}%`;
+            if (progress < duration) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    function renderTrendChart() {
+        const ctx = document.getElementById('attendance-trend-chart')?.getContext('2d');
+        if (!ctx) return;
+
+        // This is a placeholder for a real charting library or a custom implementation
+        // For now, we use the `drawBarChart` from utils.js if available.
+        if(typeof drawBarChart === 'function') {
+            const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+            const values = [88, 92, 85, 95, 90];
+            drawBarChart(ctx, { labels, values }, {
+                barColor: 'rgba(0, 212, 255, 0.6)',
+                title: 'Weekly Attendance Trend'
+            });
+        }
+    }
+
+    function showValidationError(element, message = 'Invalid input') {
+        element.classList.add('error');
+        showNotification(message, 'error');
+        setTimeout(() => element.classList.remove('error'), 1000);
+    }
+
+    function saveData() {
+        localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+    }
+
+    // --- Utility & Mock Data ---
+    function generateMockData() {
+        // Create some default data if none exists
+        const today = new Date().toISOString().slice(0, 10);
+        return {
+            'S123': [{date: today, status: 'present'}],
+            'A456': [{date: today, status: 'absent'}],
+        };
     }
 });
