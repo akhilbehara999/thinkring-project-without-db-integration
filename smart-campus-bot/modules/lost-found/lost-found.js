@@ -53,10 +53,10 @@ document.addEventListener('DOMContentLoaded', () => {
         reportForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
+            // Description is now optional, so we only validate the name.
             const isNameValid = validateField(itemNameInput);
-            const isDescriptionValid = validateField(itemDescriptionInput);
 
-            if (!isNameValid || !isDescriptionValid) {
+            if (!isNameValid) {
                 speak("Please fill out all required fields.");
                 return;
             }
@@ -73,12 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 image: imagePreview.src.startsWith('data:image') ? imagePreview.src : null,
                 reportedAt: new Date(),
                 reportedBy: localStorage.getItem('username') || 'anonymous',
-                status: 'pending'
+                // Items are now approved by default to be visible immediately.
+                status: 'approved'
             };
 
             items.push(newItem);
             localStorage.setItem('lost-found-items', JSON.stringify(items));
-            alert('Your report has been submitted for review.');
+            alert('Your report has been submitted.'); // Changed message
 
             reportForm.reset();
             imagePreview.style.display = 'none';
@@ -183,7 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderItems() {
         if(!itemList) return;
 
-        let itemsToRender = [...items];
+        // In user view, only show 'approved' items.
+        let itemsToRender = items.filter(item => item.status === 'approved');
 
         // 1. Filter by status
         const filterValue = filterStatusEl.value;
@@ -303,7 +305,7 @@ function findMatches(currentItem, allItems) {
         if (itemIndex > -1) {
             items[itemIndex].status = newStatus;
             localStorage.setItem('lost-found-items', JSON.stringify(items));
-            renderAdminItems();
+            renderAdminTable();
         }
     }
 
