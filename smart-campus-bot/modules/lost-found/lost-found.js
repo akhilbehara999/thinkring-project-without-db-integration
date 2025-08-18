@@ -1,447 +1,260 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Element Selection ---
+    const userView = document.getElementById('user-view');
+    const adminView = document.getElementById('admin-view');
+    const itemGrid = document.getElementById('item-grid');
+    const showReportModalBtn = document.getElementById('show-report-form-btn');
+
+    // Modals
+    const reportModal = document.getElementById('report-item-modal');
+    const claimModal = document.getElementById('claim-item-modal');
+    const closeReportModalBtn = document.getElementById('close-report-modal-btn');
+    const closeClaimModalBtn = document.getElementById('close-claim-modal-btn');
+
+    // Report Form
     const reportForm = document.getElementById('report-form');
-    const itemList = document.getElementById('item-list');
-    const adminItemList = document.getElementById('admin-item-list');
-    const searchBar = document.getElementById('search-bar');
-    const filterStatusEl = document.getElementById('filter-status');
-    const sortByEl = document.getElementById('sort-by');
-    const itemNameInput = document.getElementById('item-name');
-    const itemDescriptionInput = document.getElementById('item-description');
+    const submitReportBtn = document.getElementById('submit-report-btn');
+    const dropZone = document.getElementById('drop-zone');
     const itemImageInput = document.getElementById('item-image');
     const imagePreview = document.getElementById('image-preview');
 
-    const userView = document.getElementById('user-view');
-    const adminView = document.getElementById('admin-view');
-
-    let items = JSON.parse(localStorage.getItem('lost-found-items')) || [];
-
-    // Check for admin view
+    // --- State & Data ---
+    let items = JSON.parse(localStorage.getItem('lost-found-items-v2')) || [];
     const urlParams = new URLSearchParams(window.location.search);
     const isAdminView = urlParams.get('view') === 'admin';
 
-    if (isAdminView) {
-        document.body.classList.add('admin-mode');
-        document.querySelector('.back-link').href = '../../admin.html';
-        document.querySelector('h1').textContent = 'Manage Lost & Found';
+    // --- Initial Setup ---
+    initializeViews();
+    setupEventListeners();
+    renderItems();
+    if(isAdminView) setupAdminView();
+
+    // --- Functions ---
+
+    function initializeViews() {
+        if (isAdminView) {
+            userView.classList.remove('active');
+            adminView.classList.add('active');
+        } else {
+            userView.classList.add('active');
+            adminView.classList.remove('active');
+        }
+    }
+
+    function setupAdminView() {
         renderAdminTable();
-        renderAdminAnalytics();
-    } else {
-        document.body.classList.add('user-mode');
-        renderItems();
+        renderAdminCharts();
     }
 
-    if(itemNameInput) itemNameInput.addEventListener('input', () => validateField(itemNameInput));
-    if(itemDescriptionInput) itemDescriptionInput.addEventListener('input', () => validateField(itemDescriptionInput));
+    function setupEventListeners() {
+        // Modal Triggers
+        showReportModalBtn.addEventListener('click', () => toggleModal(reportModal, true));
+        closeReportModalBtn.addEventListener('click', () => toggleModal(reportModal, false));
+        reportModal.addEventListener('click', (e) => e.target === reportModal && toggleModal(reportModal, false));
+        closeClaimModalBtn.addEventListener('click', () => toggleModal(claimModal, false));
+        claimModal.addEventListener('click', (e) => e.target === claimModal && toggleModal(claimModal, false));
 
-    if (itemImageInput) {
-        itemImageInput.addEventListener('change', () => {
-            const file = itemImageInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    imagePreview.src = e.target.result;
-                    imagePreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            } else {
-                imagePreview.style.display = 'none';
-            }
-        });
-    }
-
-    if(reportForm) {
-        reportForm.addEventListener('submit', (e) => {
+        // Report Form & Drag-and-Drop
+        reportForm.addEventListener('submit', handleReportSubmit);
+        dropZone.addEventListener('click', () => itemImageInput.click());
+        dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', handleFileDrop);
+        itemImageInput.addEventListener('change', handleFileInputChange);
 
-            // Description is now optional, so we only validate the name.
-            const isNameValid = validateField(itemNameInput);
+        // Item Grid Interactions
+        itemGrid.addEventListener('mousemove', handleGridMouseMove);
+        itemGrid.addEventListener('mouseleave', handleGridMouseLeave);
+    }
 
-            if (!isNameValid) {
-                speak("Please fill out all required fields.");
-                return;
-            }
+    function toggleModal(modal, show) {
+        if (show) {
+            modal.classList.add('visible');
+        } else {
+            modal.classList.remove('visible');
+        }
+    }
 
+    function handleFileDrop(e) {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            itemImageInput.files = files;
+            previewImage(files[0]);
+        }
+    }
+
+    function handleFileInputChange() {
+        if (itemImageInput.files.length > 0) {
+            previewImage(itemImageInput.files[0]);
+        }
+    }
+
+    function previewImage(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreview.src = e.target.result;
+            imagePreview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    }
+
+    function handleReportSubmit(e) {
+        e.preventDefault();
+        submitReportBtn.classList.add('loading');
+        submitReportBtn.disabled = true;
+
+        // Simulate network delay
+        setTimeout(() => {
             const newItem = {
                 id: Date.now(),
-                name: itemNameInput.value,
-                description: itemDescriptionInput.value,
+                name: document.getElementById('item-name').value,
+                description: document.getElementById('item-description').value,
                 type: document.getElementById('item-type').value,
-                category: document.getElementById('item-category').value,
-                date: document.getElementById('item-date').value,
-                location: document.getElementById('item-location').value,
-                contact: document.getElementById('item-contact').value,
                 image: imagePreview.src.startsWith('data:image') ? imagePreview.src : null,
-                reportedAt: new Date(),
-                reportedBy: localStorage.getItem('username') || 'anonymous',
-                // Items are now approved by default to be visible immediately.
-                status: 'approved'
+                status: 'unclaimed', // new status system: unclaimed, claimed, approved
+                reportedAt: new Date().toISOString()
             };
 
             items.push(newItem);
-            localStorage.setItem('lost-found-items', JSON.stringify(items));
-            alert('Your report has been submitted.'); // Changed message
+            localStorage.setItem('lost-found-items-v2', JSON.stringify(items));
 
+            renderItems();
+
+            submitReportBtn.classList.remove('loading');
+            submitReportBtn.disabled = false;
+            toggleModal(reportModal, false);
             reportForm.reset();
             imagePreview.style.display = 'none';
 
-            // Reset filters to ensure the new item is visible
-            if(searchBar) searchBar.value = '';
-            if(filterStatusEl) filterStatusEl.value = 'all';
-            if(sortByEl) sortByEl.value = 'newest';
-
-            renderItems(); // Re-render the user's view
-    });
-
-    if(searchBar) searchBar.addEventListener('input', renderItems);
-    if(filterStatusEl) filterStatusEl.addEventListener('change', renderItems);
-    if(sortByEl) sortByEl.addEventListener('change', renderItems);
-
-
-    // --- Modal Logic ---
-    const contactModal = document.getElementById('contact-modal');
-    const closeModalBtn = document.getElementById('close-modal-btn');
-    const contactForm = document.getElementById('contact-form');
-    const contactItemIdInput = document.getElementById('contact-item-id');
-
-    function openModal(itemId) {
-        contactItemIdInput.value = itemId;
-        contactModal.classList.add('visible');
+            // Success feedback
+            showNotification('Report Submitted Successfully!', 'success');
+        }, 1500);
     }
-
-    function closeModal() {
-        contactModal.classList.remove('visible');
-        contactForm.reset();
-    }
-
-    if(itemList) {
-        // 3D Tilt Effect & Particle Sparks
-        let lastSparkTime = 0;
-        itemList.addEventListener('mousemove', (e) => {
-            const card = e.target.closest('.item-card');
-            if (card) {
-                // Throttled sparks on move
-                const now = Date.now();
-                if (now - lastSparkTime > 50) {
-                    if (window.createSparkParticles) {
-                        window.createSparkParticles(e.pageX, e.pageY, 2);
-                    }
-                    lastSparkTime = now;
-                }
-
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-
-                const rotateX = ((y - centerY) / centerY) * -8; // Max rotation 8deg
-                const rotateY = ((x - centerX) / centerX) * 8;
-
-                card.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
-            }
-        });
-
-        itemList.addEventListener('mouseleave', () => {
-            const cards = itemList.querySelectorAll('.item-card');
-            cards.forEach(card => {
-                card.style.transform = 'perspective(1500px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
-            });
-        });
-
-        itemList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('contact-btn')) {
-                const itemId = e.target.dataset.id;
-                openModal(itemId);
-            } else if (e.target.closest('.item-card')) {
-                // Click on card itself for a larger burst
-                if (window.createSparkParticles) {
-                    window.createSparkParticles(e.pageX, e.pageY, 20);
-                }
-            }
-        });
-    }
-
-    if(closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-    if(contactModal) contactModal.addEventListener('click', (e) => {
-        if (e.target === contactModal) {
-            closeModal();
-        }
-    });
-
-    if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            // In a real app, this would send an email or an in-app message.
-            // Here, we'll just simulate it and log to console.
-            const messageData = {
-                toItemId: contactItemIdInput.value,
-                from: document.getElementById('user-contact-info').value,
-                message: document.getElementById('contact-message').value,
-                sentAt: new Date()
-            };
-            console.log("Simulated Message Sent:", messageData);
-            alert('Message sent successfully! The item reporter has been notified.');
-            closeModal();
-        });
-    }
-
 
     function renderItems() {
-        if(!itemList) return;
-
-        // In user view, only show 'approved' items.
-        let itemsToRender = items.filter(item => item.status === 'approved');
-
-        // 1. Filter by status
-        const filterValue = filterStatusEl.value;
-        if (filterValue !== 'all') {
-            itemsToRender = itemsToRender.filter(item => item.type === filterValue);
-        }
-
-        // 2. Filter by search term
-        const searchTerm = searchBar.value.toLowerCase();
-        if (searchTerm) {
-            itemsToRender = itemsToRender.filter(item =>
-                item.name.toLowerCase().includes(searchTerm) ||
-                item.description.toLowerCase().includes(searchTerm) ||
-                item.category.toLowerCase().includes(searchTerm) ||
-                item.location.toLowerCase().includes(searchTerm)
-            );
-        }
-
-        // 3. Sort
-        const sortByValue = sortByEl.value;
-        itemsToRender.sort((a, b) => {
-            const dateA = new Date(a.reportedAt);
-            const dateB = new Date(b.reportedAt);
-            return sortByValue === 'newest' ? dateB - dateA : dateA - dateB;
-        });
-
-        itemList.innerHTML = '';
-        if (itemsToRender.length === 0) {
-            itemList.innerHTML = '<p class="empty-message">No items match your criteria.</p>';
+        itemGrid.innerHTML = '';
+        if (items.length === 0) {
+            itemGrid.innerHTML = '<p class="empty-message">No items reported yet. Be the first!</p>';
             return;
         }
 
-        itemsToRender.forEach(item => {
+        // Add staggered animation delay
+        items.forEach((item, index) => {
             const itemCard = document.createElement('div');
             itemCard.className = 'item-card';
+            itemCard.style.animationDelay = `${index * 100}ms`;
+            itemCard.dataset.id = item.id;
+
+            let statusBadge;
+            if (item.status === 'claimed') {
+                statusBadge = `<span class="badge status-claimed">Claimed</span>`;
+            } else {
+                statusBadge = `<span class="badge type-${item.type}">${item.type}</span>`;
+            }
+
             itemCard.innerHTML = `
                 <div class="card-image-container">
-                    ${item.image ? `<img src="${item.image}" alt="${sanitizeInput(item.name)}">` : '<div class="no-image">No Image</div>'}
+                    ${item.image ? `<img src="${item.image}" alt="${item.name}">` : ''}
                 </div>
-                <h3>${sanitizeInput(item.name)}</h3>
-                <p class="item-meta">
-                    <span class="badge category-${item.category}">${sanitizeInput(item.category)}</span>
-                    <span class="badge type-${item.type}">${item.type}</span>
-                </p>
-                <p>${sanitizeInput(item.description)}</p>
-                <small>Last Seen/Found: ${item.location} on ${item.date}</small>
-                <button class="contact-btn" data-id="${item.id}">Contact</button>
+                <div class="card-content">
+                    <h3>${item.name}</h3>
+                    <p class="item-meta">${statusBadge}</p>
+                    <p>${item.description}</p>
+                    <button class="holographic-btn claim-btn">Claim</button>
+                </div>
             `;
-            itemList.appendChild(itemCard);
+            itemGrid.appendChild(itemCard);
         });
     }
 
-function findMatches(currentItem, allItems) {
-    if (currentItem.status === 'resolved') return false;
+    function handleGridMouseMove(e) {
+        const card = e.target.closest('.item-card');
+        if (!card) return;
 
-    const currentNameWords = currentItem.name.toLowerCase().split(' ');
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
 
-    for (const otherItem of allItems) {
-        if (otherItem.id === currentItem.id || otherItem.status === 'resolved' || otherItem.type === currentItem.type) {
-            continue;
-        }
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
 
-        if (otherItem.category === currentItem.category) {
-            const otherNameWords = otherItem.name.toLowerCase().split(' ');
-            if (currentNameWords.some(word => word.length > 2 && otherNameWords.includes(word))) {
-                return true;
-            }
-        }
+        const rotateX = ((y - centerY) / centerY) * -10; // Max rotation
+        const rotateY = ((x - centerX) / centerX) * 10;
+
+        card.style.transform = `perspective(1500px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
     }
-    return false;
-}
 
+    function handleGridMouseLeave() {
+        const cards = itemGrid.querySelectorAll('.item-card');
+        cards.forEach(card => {
+            card.style.transform = 'perspective(1500px) rotateX(0) rotateY(0)';
+        });
+    }
+
+    // --- Admin Functions ---
     function renderAdminTable() {
-        const adminTableBody = document.querySelector('#admin-items-table tbody');
-        if (!adminTableBody) return;
-
-        adminTableBody.innerHTML = '';
-
-        if (items.length === 0) {
-            const row = adminTableBody.insertRow();
-            const cell = row.insertCell();
-            cell.colSpan = 7; // Span all columns
-            cell.innerHTML = '<p class="empty-message">No items have been reported.</p>';
-            return;
-        }
-
+        const tableBody = document.querySelector('#admin-items-table tbody');
+        if(!tableBody) return;
+        tableBody.innerHTML = '';
         items.forEach(item => {
-            const row = adminTableBody.insertRow();
-            row.className = item.isFlagged ? 'flagged' : '';
-            if (findMatches(item, items)) {
-                row.classList.add('match-highlight');
-            }
+            const row = tableBody.insertRow();
             row.innerHTML = `
-                <td>${sanitizeInput(item.name)}</td>
-                <td>${sanitizeInput(item.category)}</td>
-                <td>${sanitizeInput(item.reportedBy)}</td>
-                <td>${sanitizeInput(item.contact)}</td>
-                <td>${item.date}</td>
-                <td><span class="status-badge status-${item.status}">${item.status}</span></td>
+                <td>${item.name}</td>
+                <td><span class="badge type-${item.type}">${item.type}</span></td>
+                <td>Anonymous</td>
+                <td>${new Date(item.reportedAt).toLocaleDateString()}</td>
                 <td>
-                    <button class="action-btn approve-btn" data-id="${item.id}" title="Approve">✔️</button>
-                    <button class="action-btn resolve-btn" data-id="${item.id}" title="Mark Resolved">🏁</button>
-                    <button class="action-btn flag-btn" data-id="${item.id}" title="Flag Item">🚩</button>
-                    <button class="action-btn delete-btn" data-id="${item.id}" title="Delete">🗑️</button>
+                    <button class="action-btn approve-btn" data-id="${item.id}">✔️</button>
+                    <button class="action-btn delete-btn" data-id="${item.id}">🗑️</button>
                 </td>
             `;
         });
     }
 
-    /**
-     * Updates the status of a specific item.
-     * @param {number} itemId The ID of the item to update.
-     * @param {string} newStatus The new status ('pending', 'approved', 'resolved').
-     */
-    function updateItemStatus(itemId, newStatus) {
-        const itemIndex = items.findIndex(item => item.id === itemId);
-        if (itemIndex > -1) {
-            items[itemIndex].status = newStatus;
-            localStorage.setItem('lost-found-items', JSON.stringify(items));
-            renderAdminTable();
-        }
-    }
-
-    /**
-     * Draws the analytics chart for the admin view.
-     */
-    function renderAdminAnalytics() {
-        // Chart 1: Lost vs Found
-        const lostCount = items.filter(item => item.type === 'lost').length;
-        const foundCount = items.filter(item => item.type === 'found').length;
-        drawBarChart('lost-found-admin-chart', {
-            labels: ['Lost', 'Found'],
-            values: [lostCount, foundCount]
-        }, { barColor: '#ffd700' });
-
-        // Chart 2: By Category
-        const categoryCounts = items.reduce((acc, item) => {
-            acc[item.category] = (acc[item.category] || 0) + 1;
-            return acc;
-        }, {});
-        drawBarChart('category-chart', {
-            labels: Object.keys(categoryCounts),
-            values: Object.values(categoryCounts)
-        }, { barColor: '#9c88ff' });
-
-        // Chart 3: Reports this week
-        const today = new Date();
-        const last7Days = Array(7).fill(0).map((_, i) => {
-            const d = new Date();
-            d.setDate(today.getDate() - i);
-            return d.toISOString().split('T')[0]; // Get YYYY-MM-DD
-        }).reverse();
-
-        const reportCounts = last7Days.map(dateStr => {
-            return items.filter(item => {
-                const itemDate = new Date(item.reportedAt).toISOString().split('T')[0];
-                return itemDate === dateStr;
-            }).length;
-        });
-
-        drawBarChart('trend-chart', {
-            labels: last7Days.map(d => new Date(d).toLocaleDateString(undefined, {weekday: 'short'})),
-            values: reportCounts
-        }, { barColor: '#e84118' });
-    }
-
-
-    // --- Voice Command Logic ---
-    if ('webkitSpeechRecognition' in window) {
-        const voiceEnabled = localStorage.getItem('voice-enabled') !== 'false';
-        if (!voiceEnabled) {
-            console.log('Voice commands disabled by user setting.');
-            return;
-        }
-
-        const recognition = new webkitSpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = false;
-
-        recognition.onresult = (event) => {
-            const last = event.results.length - 1;
-            const command = event.results[last][0].transcript.trim().toLowerCase();
-            console.log('Voice command received:', command);
-
-            if (command.includes('report') && command.includes('item')) {
-                speak('Opening the report form for you.');
-                document.getElementById('report-form').scrollIntoView({ behavior: 'smooth' });
-            } else if (command.includes('show found items')) {
-                speak('Filtering to show found items.');
-                filterStatusEl.value = 'found';
-                renderItems();
-            } else if (command.includes('show lost items')) {
-                speak('Filtering to show lost items.');
-                filterStatusEl.value = 'lost';
-                renderItems();
-            } else if (command.includes('show all items')) {
-                speak('Showing all items.');
-                filterStatusEl.value = 'all';
-                renderItems();
-            }
-
-            // Admin-specific commands
-            if (isAdminView && command.includes('delete flagged items')) {
-                if (confirm('Are you sure you want to delete all flagged items?')) {
-                    speak('Deleting all flagged items.');
-                    items = items.filter(item => !item.isFlagged);
-                    localStorage.setItem('lost-found-items', JSON.stringify(items));
-                    renderAdminTable();
-                }
-            }
+    function renderAdminCharts() {
+        // Mock data for charts
+        const statusData = {
+            labels: ['Lost', 'Found', 'Claimed'],
+            datasets: [{
+                data: [
+                    items.filter(i => i.type === 'lost').length,
+                    items.filter(i => i.type === 'found').length,
+                    items.filter(i => i.status === 'claimed').length
+                ],
+                backgroundColor: ['rgba(255, 99, 132, 0.5)', 'rgba(75, 192, 192, 0.5)', 'rgba(255, 205, 86, 0.5)'],
+                borderColor: ['#ff6384', '#4bc0c0', '#ffcd56'],
+                borderWidth: 1
+            }]
         };
-
-        recognition.onerror = (event) => {
-            console.error('Voice recognition error:', event.error);
-        };
-
-        // Start listening
-        try {
-            recognition.start();
-        } catch(e) {
-            console.warn("Voice recognition could not be started automatically.", e.message);
-        }
-    }
-
-
-    // --- Admin Table Action Logic ---
-    const adminTableBody = document.querySelector('#admin-items-table tbody');
-    if (adminTableBody) {
-        adminTableBody.addEventListener('click', (e) => {
-            if (e.target.classList.contains('action-btn')) {
-                const itemId = parseInt(e.target.dataset.id, 10);
-                const itemIndex = items.findIndex(item => item.id === itemId);
-
-                if (itemIndex === -1) return;
-
-                if (e.target.classList.contains('delete-btn')) {
-                    if (confirm('Are you sure you want to delete this item?')) {
-                        items.splice(itemIndex, 1);
-                    }
-                } else if (e.target.classList.contains('approve-btn')) {
-                    items[itemIndex].status = 'approved';
-                } else if (e.target.classList.contains('resolve-btn')) {
-                    items[itemIndex].status = 'resolved';
-                } else if (e.target.classList.contains('flag-btn')) {
-                    items[itemIndex].isFlagged = !items[itemIndex].isFlagged; // Toggle flag
-                }
-
-                localStorage.setItem('lost-found-items', JSON.stringify(items));
-                renderAdminTable();
-            }
+        // In a real app, you would use a charting library. Here we just log it.
+        console.log("Admin Chart Data (Status):", statusData);
+        drawBarChart('admin-chart-status', {
+            labels: statusData.labels,
+            values: statusData.datasets[0].data
         });
     }
+
+    // --- Particle Background Logic ---
+    function createParticles() {
+        const container = document.getElementById('particle-container');
+        if(!container) return;
+        const particleCount = 50;
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.top = `${Math.random() * 100}%`;
+            particle.style.width = `${Math.random() * 2 + 1}px`;
+            particle.style.height = particle.style.width;
+            particle.style.animationDelay = `${Math.random() * 5}s`;
+            particle.style.animationDuration = `${Math.random() * 10 + 5}s`;
+            container.appendChild(particle);
+        }
+    }
+    createParticles();
 });
