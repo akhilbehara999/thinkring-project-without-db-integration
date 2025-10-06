@@ -6,10 +6,14 @@
     <title>Code Explainer - Smart Service Campus Bot</title>
     <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../../css/enhanced-dropdowns.css">
-    <link rel="stylesheet" href="code-explainer.css">
+    <link rel="stylesheet" href="code-explainer-modern.css">
     <link rel="stylesheet" href="../../css/responsive.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="code-explainer-module">
+    <!-- Particle Background -->
+    <div class="particle-bg" id="particle-bg"></div>
+    
     <div id="loader-wrapper">
         <div class="loader"></div>
         <div class="loader-text">Loading Module...</div>
@@ -69,7 +73,7 @@
                         <span class="btn-icon">⚡</span>
                         <div class="btn-content">
                             <div class="btn-title">Output</div>
-                            <div class="btn-subtitle">Execution & Trace</div>
+                            <div class="btn-subtitle">Direct Output Only</div>
                         </div>
                     </button>
                 </div>
@@ -164,6 +168,26 @@
 
     <script src="../../js/utils.js"></script>
     <script src="../../js/global.js"></script>
+    <script src="code-explainer-animations.js"></script>
     <script src="code-explainer.js"></script>
+    <script>
+        // Initialize particle background
+        document.addEventListener('DOMContentLoaded', function() {
+            const particleBg = document.getElementById('particle-bg');
+            if (particleBg) {
+                for (let i = 0; i < 30; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    particle.style.left = Math.random() * 100 + 'vw';
+                    particle.style.top = Math.random() * 100 + 'vh';
+                    particle.style.width = Math.random() * 5 + 2 + 'px';
+                    particle.style.height = particle.style.width;
+                    particle.style.animationDuration = Math.random() * 10 + 15 + 's';
+                    particle.style.animationDelay = Math.random() * 5 + 's';
+                    particleBg.appendChild(particle);
+                }
+            }
+        });
+    </script>
 </body>
 </html>

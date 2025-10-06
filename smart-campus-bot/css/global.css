@@ -6,6 +6,23 @@
     --success-color: #ffd700;
     --error-color: #ff4757;
     --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    
+    /* New modern color variables for consistency */
+    --primary: #6c5ce7;
+    --secondary: #a29bfe;
+    --accent: #fd79a8;
+    --success: #00b894;
+    --warning: #fdcb6e;
+    --danger: #ff7675;
+    --dark: #2d3436;
+    --light: #f7f7f7;
+    --card-bg: rgba(255, 255, 255, 0.08);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --select-bg: rgba(26, 26, 46, 0.7);
+    --select-text: #f7f7f7;
+    --select-border: rgba(108, 92, 231, 0.5);
 }
 
 body {
@@ -104,4 +121,18 @@ input:focus, textarea:focus, select:focus {
 
 .global-voice-btn.off {
     background-color: #7f8fa6;
+}
+
+/* Improved select styling for better visibility */
+select {
+    background: var(--select-bg);
+    color: var(--select-text);
+    border: 1px solid var(--select-border);
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
+select option {
+    background-color: var(--select-bg);
+    color: var(--select-text);
 }

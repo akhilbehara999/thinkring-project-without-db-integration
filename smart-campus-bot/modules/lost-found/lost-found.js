@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const userView = document.getElementById('user-view');
     const adminView = document.getElementById('admin-view');
+    const reportItemSection = document.getElementById('report-item');
+    const reportFormContainer = document.getElementById('report-form');
 
     let items = JSON.parse(localStorage.getItem('lost-found-items')) || [];
 
@@ -25,13 +27,25 @@ document.addEventListener('DOMContentLoaded', () => {
         adminView.style.display = 'block';
         document.querySelector('.back-link').href = '../../admin.html';
         document.querySelector('h1').textContent = 'Manage Lost & Found';
-        renderAdminTable();
+        renderAdminItems(); // Use renderAdminItems for card-based display
         renderAdminAnalytics();
+        
+        // Attach event listener after rendering
+        attachAdminClickListener();
     } else {
         document.body.classList.add('user-mode');
         userView.style.display = 'block';
         adminView.style.display = 'none';
         renderItems();
+    }
+
+    // Toggle form visibility when clicking the section header
+    const reportHeader = document.querySelector('#report-item h2');
+    if (reportHeader) {
+        reportHeader.style.cursor = 'pointer';
+        reportHeader.addEventListener('click', () => {
+            reportFormContainer.style.display = reportFormContainer.style.display === 'none' ? 'grid' : 'none';
+        });
     }
 
     if(itemNameInput) itemNameInput.addEventListener('input', () => validateField(itemNameInput));
@@ -86,7 +100,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             reportForm.reset();
             imagePreview.style.display = 'none';
-            renderItems(); // Re-render the user's view
+            
+            // Check if we're in admin mode to call the correct render function
+            const urlParams = new URLSearchParams(window.location.search);
+            const isAdminView = urlParams.get('view') === 'admin';
+            
+            if (isAdminView) {
+                renderAdminItems(); // Re-render the admin view
+                renderAdminAnalytics(); // Update charts
+                attachAdminClickListener(); // Re-attach the listener
+            } else {
+                renderItems(); // Re-render the user's view
+            }
+            
+            // Hide the form after submission
+            reportFormContainer.style.display = 'none';
         });
     }
 
@@ -131,14 +159,13 @@ document.addEventListener('DOMContentLoaded', () => {
         contactForm.addEventListener('submit', (e) => {
             e.preventDefault();
             // In a real app, this would send an email or an in-app message.
-            // Here, we'll just simulate it and log to console.
+            // Here, we'll just simulate it
             const messageData = {
                 toItemId: contactItemIdInput.value,
                 from: document.getElementById('user-contact-info').value,
                 message: document.getElementById('contact-message').value,
                 sentAt: new Date()
             };
-            console.log("Simulated Message Sent:", messageData);
             alert('Message sent successfully! The item reporter has been notified.');
             closeModal();
         });
@@ -184,18 +211,27 @@ document.addEventListener('DOMContentLoaded', () => {
         itemsToRender.forEach(item => {
             const itemCard = document.createElement('div');
             itemCard.className = 'item-card';
+            
+            // Determine status class for the indicator
+            const statusClass = item.type === 'lost' ? 'status-lost' : 'status-found';
+            
             itemCard.innerHTML = `
+                <div class="item-status ${statusClass}"></div>
                 <div class="card-image-container">
                     ${item.image ? `<img src="${item.image}" alt="${sanitizeInput(item.name)}">` : '<div class="no-image">No Image</div>'}
                 </div>
-                <h3>${sanitizeInput(item.name)}</h3>
-                <p class="item-meta">
-                    <span class="badge category-${item.category}">${sanitizeInput(item.category)}</span>
-                    <span class="badge type-${item.type}">${item.type}</span>
-                </p>
-                <p>${sanitizeInput(item.description)}</p>
-                <small>Last Seen/Found: ${item.location} on ${item.date}</small>
-                <button class="contact-btn" data-id="${item.id}">Contact</button>
+                <div class="item-content">
+                    <h3>${sanitizeInput(item.name)}</h3>
+                    <p>${sanitizeInput(item.description)}</p>
+                    <div class="item-meta">
+                        <span class="badge category-${item.category}">${sanitizeInput(item.category)}</span>
+                        <span class="badge type-${item.type}">${item.type}</span>
+                    </div>
+                    <div class="item-footer">
+                        <div class="item-location">📍 ${item.location} on ${item.date}</div>
+                        <button class="contact-btn" data-id="${item.id}">Contact</button>
+                    </div>
+                </div>
             `;
             itemList.appendChild(itemCard);
         });
@@ -244,6 +280,7 @@ function findMatches(currentItem, allItems) {
             row.innerHTML = `
                 <td>${sanitizeInput(item.name)}</td>
                 <td>${sanitizeInput(item.category)}</td>
+
                 <td>${sanitizeInput(item.reportedBy)}</td>
                 <td>${sanitizeInput(item.contact)}</td>
                 <td>${item.date}</td>
@@ -259,6 +296,89 @@ function findMatches(currentItem, allItems) {
     }
 
     /**
+     * Render admin items in card format
+     */
+    function renderAdminItems() {
+        const adminItemList = document.getElementById('admin-item-list');
+        if (!adminItemList) return;
+
+        // Clear existing content
+        adminItemList.innerHTML = '';
+
+        if (items.length === 0) {
+            adminItemList.innerHTML = '<p class="empty-message">No items have been reported.</p>';
+            return;
+        }
+
+        // Create a container for the cards
+        const cardsContainer = document.createElement('div');
+        cardsContainer.className = 'admin-cards-container';
+
+        items.forEach(item => {
+            const itemCard = document.createElement('div');
+            itemCard.className = 'admin-item-card';
+            
+            // Add status indicator
+            const statusClass = item.type === 'lost' ? 'status-lost' : 'status-found';
+            itemCard.innerHTML = `
+                <div class="item-status ${statusClass}"></div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <h3>${sanitizeInput(item.name)}</h3>
+                    <span class="status-badge status-${item.status}">
+                        ${item.status}
+                    </span>
+                </div>
+                
+                <p>${sanitizeInput(item.description)}</p>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
+                    <span class="badge category-${item.category}">
+                        ${sanitizeInput(item.category)}
+                    </span>
+                    <span class="badge type-${item.type}">
+                        ${item.type === 'lost' ? 'Lost' : 'Found'}
+                    </span>
+                </div>
+                
+                <div style="margin: 15px 0; font-size: 0.9rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Reported by:</span>
+                        <span>${sanitizeInput(item.reportedBy)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Contact:</span>
+                        <span>${sanitizeInput(item.contact)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Date:</span>
+                        <span>${item.date}</span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                    <button class="action-btn approve-btn" data-id="${item.id}" title="Approve">
+                        ✔️ Approve
+                    </button>
+                    <button class="action-btn resolve-btn" data-id="${item.id}" title="Mark Resolved">
+                        🏁 Resolve
+                    </button>
+                    <button class="action-btn flag-btn" data-id="${item.id}" title="Flag Item">
+                        ${item.isFlagged ? '🚩 Unflag' : '🚩 Flag'}
+                    </button>
+                    <button class="action-btn delete-btn" data-id="${item.id}" title="Delete">
+                        🗑️ Delete
+                    </button>
+                </div>
+            `;
+            
+            cardsContainer.appendChild(itemCard);
+        });
+        
+        adminItemList.appendChild(cardsContainer);
+    }
+
+    /**
      * Updates the status of a specific item.
      * @param {number} itemId The ID of the item to update.
      * @param {string} newStatus The new status ('pending', 'approved', 'resolved').
@@ -268,7 +388,17 @@ function findMatches(currentItem, allItems) {
         if (itemIndex > -1) {
             items[itemIndex].status = newStatus;
             localStorage.setItem('lost-found-items', JSON.stringify(items));
-            renderAdminItems();
+            
+            // Check if we're in admin mode to call the correct render function
+            const urlParams = new URLSearchParams(window.location.search);
+            const isAdminView = urlParams.get('view') === 'admin';
+            
+            if (isAdminView) {
+                renderAdminItems();
+                attachAdminClickListener(); // Re-attach the listener
+            } else {
+                renderItems();
+            }
         }
     }
 
@@ -276,6 +406,17 @@ function findMatches(currentItem, allItems) {
      * Draws the analytics chart for the admin view.
      */
     function renderAdminAnalytics() {
+        // Only render charts if we're in admin view and charts exist
+        const isAdminView = new URLSearchParams(window.location.search).get('view') === 'admin';
+        if (!isAdminView) return;
+        
+        // Make sure the canvas elements exist
+        const lostFoundChart = document.getElementById('lost-found-admin-chart');
+        const categoryChart = document.getElementById('category-chart');
+        const trendChart = document.getElementById('trend-chart');
+        
+        if (!lostFoundChart || !categoryChart || !trendChart) return;
+        
         // Chart 1: Lost vs Found
         const lostCount = items.filter(item => item.type === 'lost').length;
         const foundCount = items.filter(item => item.type === 'found').length;
@@ -320,7 +461,6 @@ function findMatches(currentItem, allItems) {
     if ('webkitSpeechRecognition' in window) {
         const voiceEnabled = localStorage.getItem('voice-enabled') !== 'false';
         if (!voiceEnabled) {
-            console.log('Voice commands disabled by user setting.');
             return;
         }
 
@@ -331,7 +471,6 @@ function findMatches(currentItem, allItems) {
         recognition.onresult = (event) => {
             const last = event.results.length - 1;
             const command = event.results[last][0].transcript.trim().toLowerCase();
-            console.log('Voice command received:', command);
 
             if (command.includes('report') && command.includes('item')) {
                 speak('Opening the report form for you.');
@@ -351,54 +490,96 @@ function findMatches(currentItem, allItems) {
             }
 
             // Admin-specific commands
+            const isAdminView = new URLSearchParams(window.location.search).get('view') === 'admin';
             if (isAdminView && command.includes('delete flagged items')) {
                 if (confirm('Are you sure you want to delete all flagged items?')) {
                     speak('Deleting all flagged items.');
                     items = items.filter(item => !item.isFlagged);
                     localStorage.setItem('lost-found-items', JSON.stringify(items));
-                    renderAdminTable();
+                    renderAdminItems();
                 }
             }
         };
 
         recognition.onerror = (event) => {
-            console.error('Voice recognition error:', event.error);
+            // Silent error handling
         };
 
         // Start listening
         try {
             recognition.start();
         } catch(e) {
-            console.warn("Voice recognition could not be started automatically.", e.message);
+            // Silent error handling
         }
     }
 
 
-    // --- Admin Table Action Logic ---
-    const adminTableBody = document.querySelector('#admin-items-table tbody');
-    if (adminTableBody) {
-        adminTableBody.addEventListener('click', (e) => {
-            if (e.target.classList.contains('action-btn')) {
-                const itemId = parseInt(e.target.dataset.id, 10);
-                const itemIndex = items.findIndex(item => item.id === itemId);
+    // Function to attach admin click listener
+    function attachAdminClickListener() {
+        // --- Admin Card Action Logic ---
+        // Use event delegation on the admin item list container
+        const adminItemList = document.getElementById('admin-item-list');
+        if (adminItemList) {
+            // Remove any existing listener to avoid duplicates
+            adminItemList.removeEventListener('click', handleAdminClick);
+            // Add the listener
+            adminItemList.addEventListener('click', handleAdminClick);
+        }
+    }
+    
+    // Handler function for admin clicks
+    function handleAdminClick(e) {
+        // Check if we're in admin view
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAdminView = urlParams.get('view') === 'admin';
+        
+        if (!isAdminView) {
+            return;
+        }
+        
+        // Find the closest action button (to handle clicks on button content)
+        const actionButton = e.target.closest('.action-btn');
+        if (actionButton) {
+            e.preventDefault(); // Prevent any default action
+            e.stopPropagation(); // Stop event from bubbling up
+            const itemId = parseInt(actionButton.dataset.id, 10);
+            const itemIndex = items.findIndex(item => item.id === itemId);
 
-                if (itemIndex === -1) return;
-
-                if (e.target.classList.contains('delete-btn')) {
-                    if (confirm('Are you sure you want to delete this item?')) {
-                        items.splice(itemIndex, 1);
-                    }
-                } else if (e.target.classList.contains('approve-btn')) {
-                    items[itemIndex].status = 'approved';
-                } else if (e.target.classList.contains('resolve-btn')) {
-                    items[itemIndex].status = 'resolved';
-                } else if (e.target.classList.contains('flag-btn')) {
-                    items[itemIndex].isFlagged = !items[itemIndex].isFlagged; // Toggle flag
-                }
-
-                localStorage.setItem('lost-found-items', JSON.stringify(items));
-                renderAdminTable();
+            if (itemIndex === -1) {
+                return;
             }
-        });
+
+            let shouldUpdate = false;
+            
+            if (actionButton.classList.contains('delete-btn')) {
+                if (confirm('Are you sure you want to delete this item?')) {
+                    items.splice(itemIndex, 1);
+                    shouldUpdate = true;
+                }
+            } else if (actionButton.classList.contains('approve-btn')) {
+                items[itemIndex].status = 'approved';
+                shouldUpdate = true;
+            } else if (actionButton.classList.contains('resolve-btn')) {
+                items[itemIndex].status = 'resolved';
+                shouldUpdate = true;
+            } else if (actionButton.classList.contains('flag-btn')) {
+                items[itemIndex].isFlagged = !items[itemIndex].isFlagged; // Toggle flag
+                shouldUpdate = true;
+            }
+
+            // Save the updated items to localStorage and re-render only if changes were made
+            if (shouldUpdate) {
+                localStorage.setItem('lost-found-items', JSON.stringify(items));
+                
+                // Re-render the admin view
+                renderAdminItems(); // Render cards instead of table
+                renderAdminAnalytics(); // Update charts when items change
+            }
+        }
+    }
+    
+    // Attach the listener initially if in admin view
+    if (isAdminView) {
+        attachAdminClickListener();
     }
 });

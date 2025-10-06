@@ -144,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     return false;
                 }
             } catch (error) {
-                console.error('AI Test Error:', error);
                 this.updateStatus('error', `Connection failed: ${error.message}`);
                 return false;
             }
@@ -188,19 +187,13 @@ Provide:
 
 Translate complex code into plain, easy-to-understand English. Make it educational and perfect for studying.`,
 
-                output: `As an expert ${language} code executor, analyze this code and provide execution details:
+                output: `As an expert ${language} code executor, analyze this code and provide ONLY the direct output:
 
 \`\`\`${language}
 ${code}
 \`\`\`
 
-Provide:
-1. **Direct Output**: Show the final result the code produces
-2. **Execution Trace**: Step-by-step trace of how the program runs
-3. **Variable Changes**: How variable values change over time
-4. **Input Handling**: If code requires input, use reasonable sample inputs
-
-Simulate the execution environment and show what would happen when this code runs.`
+Provide ONLY the final result the code produces. Do not include any explanations, traces, or variable changes. Just show what would be printed to the console or returned as output.`
             };
 
             try {
@@ -240,7 +233,6 @@ Simulate the execution environment and show what would happen when this code run
                 
                 return aiResponse;
             } catch (error) {
-                console.error('AI Analysis Error:', error);
                 throw error;
             }
         }
@@ -328,8 +320,6 @@ Simulate the execution environment and show what would happen when this code run
     }
 
     if (isAdminView) {
-        console.log('Code Explainer: Admin view detected, initializing admin interface');
-        
         userView.style.display = 'none';
         adminView.style.display = 'block';
         document.querySelector('.back-link').href = '../../admin.html';
@@ -343,8 +333,6 @@ Simulate the execution environment and show what would happen when this code run
         }
         
         renderAnalytics();
-        
-        console.log('Code Explainer: Admin view initialization complete');
     }
 
     /**
@@ -406,16 +394,10 @@ Simulate the execution environment and show what would happen when this code run
      * Perform AI analysis with comprehensive error handling
      */
     async function performAnalysis(mode) {
-        console.log(`🚀 Starting ${mode} analysis...`);
-        
         const code = codeInput?.value?.trim();
         const language = languageSelect?.value;
 
-        console.log(`📝 Code length: ${code?.length || 0} characters`);
-        console.log(`🗺 Language: ${language}`);
-
         if (!code) {
-            console.warn('⚠️ No code provided for analysis');
             alert('Please enter some code to analyze.');
             codeInput?.focus();
             return;
@@ -423,66 +405,65 @@ Simulate the execution environment and show what would happen when this code run
 
         // Check if API key is configured
         const apiKey = localStorage.getItem('code-explainer-api-key');
-        console.log(`🔑 API Key configured: ${apiKey ? '✅ Yes' : '❌ No'}`);
         
         if (!apiKey || apiKey.trim() === '') {
-            console.log('🚨 Showing API configuration modal');
             showErrorModal();
             return;
         }
 
         if (isProcessing) {
-            console.warn('⏳ Analysis already in progress, skipping...');
             return;
         }
         
         isProcessing = true;
-        console.log('🔄 Processing started');
 
         try {
             // Update button states
             const activeBtn = mode === 'analysis' ? analyzeBtn : mode === 'explanation' ? explainBtn : outputBtn;
-            console.log(`🔘 Updating button state for: ${mode}`);
             
             activeBtn.disabled = true;
             activeBtn.innerHTML = `<span class="btn-icon">🔄</span><div class="btn-content"><div class="btn-title">Processing...</div></div>`;
 
             // Switch to appropriate tab
             const targetTab = mode === 'analysis' ? 'analysis' : mode === 'explanation' ? 'explanation' : 'output';
-            console.log(`📋 Switching to tab: ${targetTab}`);
             switchTab(targetTab);
 
             // Show loading state
             const outputElement = mode === 'analysis' ? analysisOutput : mode === 'explanation' ? explanationOutput : resultOutput;
-            console.log(`📺 Output element found: ${outputElement ? '✅' : '❌'}`);
             
             outputElement.innerHTML = '<div class="loading-state"><div class="loading-icon">🧠</div><div class="loading-text">AI is analyzing your code...</div></div>';
 
             // Update AI status
-            console.log('🤖 Updating AI status...');
             aiAnalyzer.updateStatus('testing', `Performing ${mode}...`);
 
             // Perform AI analysis
-            console.log('💬 Calling AI analysis...');
             const result = await aiAnalyzer.analyzeCode(code, language, mode);
-            console.log(`✅ AI analysis completed, result length: ${result?.length || 0}`);
 
-            // Display results with typewriter effect
+            // For output mode, ensure we only show the direct output
+            let displayResult = result;
+            if (mode === 'output') {
+                // The AI should already only provide the direct output based on our modified prompt
+                // But we'll ensure any extra formatting is removed
+                displayResult = result;
+            }
+
+            // Display results
             outputElement.innerHTML = '';
-            console.log('⌨️ Starting typewriter effect...');
-            await typewriterEffect(outputElement, result);
-            console.log('✅ Typewriter effect completed');
+            
+            // For output mode, display results directly without typewriter effect
+            if (mode === 'output') {
+                outputElement.textContent = displayResult;
+            } else {
+                await typewriterEffect(outputElement, displayResult);
+            }
 
             aiAnalyzer.updateStatus('success', `${mode} completed!`);
 
         } catch (error) {
-            console.error(`❌ ${mode} Error:`, error);
             const outputElement = mode === 'analysis' ? analysisOutput : mode === 'explanation' ? explanationOutput : resultOutput;
             outputElement.innerHTML = `<div class="error-state"><div class="error-icon">❌</div><div class="error-text">Error: ${error.message}</div></div>`;
             aiAnalyzer.updateStatus('error', `${mode} failed: ${error.message}`);
         } finally {
-            console.log('🏁 Cleaning up and resetting button states...');
-            
             // Reset button states
             const activeBtn = mode === 'analysis' ? analyzeBtn : mode === 'explanation' ? explainBtn : outputBtn;
             activeBtn.disabled = false;
@@ -490,54 +471,34 @@ Simulate the execution environment and show what would happen when this code run
             const buttonConfigs = {
                 'analysis': { icon: '🔍', title: 'Analysis', subtitle: 'Syntax & Error Check' },
                 'explanation': { icon: '🧠', title: 'Explainer', subtitle: 'Step-by-Step Breakdown' },
-                'output': { icon: '⚡', title: 'Output', subtitle: 'Execution & Trace' }
+                'output': { icon: '⚡', title: 'Output', subtitle: 'Direct Output Only' }
             };
             
             const config = buttonConfigs[mode];
             activeBtn.innerHTML = `<span class="btn-icon">${config.icon}</span><div class="btn-content"><div class="btn-title">${config.title}</div><div class="btn-subtitle">${config.subtitle}</div></div>`;
             
             isProcessing = false;
-            console.log('✅ Analysis complete and cleanup finished');
         }
     }
 
     // --- Main Analysis Functions ---
     if (analyzeBtn) {
-        console.log('✅ Code Explainer: Analyze button found and event listener attached');
         analyzeBtn.addEventListener('click', async () => {
-            console.log('🔍 Code Explainer: Analyze button clicked');
             await performAnalysis('analysis');
         });
-    } else {
-        console.error('❌ Code Explainer: Analyze button not found!');
     }
 
     if (explainBtn) {
-        console.log('✅ Code Explainer: Explain button found and event listener attached');
         explainBtn.addEventListener('click', async () => {
-            console.log('🧠 Code Explainer: Explain button clicked');
             await performAnalysis('explanation');
         });
-    } else {
-        console.error('❌ Code Explainer: Explain button not found!');
     }
 
     if (outputBtn) {
-        console.log('✅ Code Explainer: Output button found and event listener attached');
         outputBtn.addEventListener('click', async () => {
-            console.log('⚡ Code Explainer: Output button clicked');
             await performAnalysis('output');
         });
-    } else {
-        console.error('❌ Code Explainer: Output button not found!');
     }
-
-    // Debug: Check if all required elements are found
-    console.log('🔧 Code Explainer Debug Info:');
-    console.log('  - codeInput:', codeInput ? '✅ Found' : '❌ Missing');
-    console.log('  - languageSelect:', languageSelect ? '✅ Found' : '❌ Missing');
-    console.log('  - aiAnalyzer:', typeof aiAnalyzer !== 'undefined' ? '✅ Created' : '❌ Missing');
-    console.log('  - performAnalysis function:', typeof performAnalysis === 'function' ? '✅ Defined' : '❌ Missing');
 
     // --- Tab Management ---
     tabBtns.forEach(btn => {
@@ -573,7 +534,6 @@ Simulate the execution environment and show what would happen when this code run
                         copyResultBtn.innerHTML = '📋 Copy';
                     }, 2000);
                 } catch (err) {
-                    console.error('Failed to copy:', err);
                 }
             }
         });
@@ -590,9 +550,6 @@ Simulate the execution environment and show what would happen when this code run
     // --- Character Counter ---
     if (codeInput) {
         const charCount = document.querySelector('.char-count');
-        console.log('📝 Character Counter:');
-        console.log('  - codeInput found:', codeInput ? '✅' : '❌');
-        console.log('  - charCount element found:', charCount ? '✅' : '❌');
         
         if (charCount) {
             // Initialize counter
@@ -602,15 +559,8 @@ Simulate the execution environment and show what would happen when this code run
             codeInput.addEventListener('input', () => {
                 const length = codeInput.value.length;
                 charCount.textContent = `${length} characters`;
-                console.log(`⌨️ Character count updated: ${length}`);
             });
-            
-            console.log('✅ Character counter initialized successfully');
-        } else {
-            console.error('❌ Character counter element not found!');
         }
-    } else {
-        console.error('❌ Code input element not found for character counter!');
     }
 
     /**
@@ -730,6 +680,5 @@ Simulate the execution environment and show what would happen when this code run
             loaderWrapper.style.display = 'none';
         }
         document.body.classList.add('loaded');
-        console.log('✅ Code Explainer: Page initialization complete');
     }, 100);
 });

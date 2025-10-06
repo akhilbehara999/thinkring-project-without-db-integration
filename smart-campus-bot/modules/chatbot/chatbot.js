@@ -5,13 +5,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminView = document.getElementById('admin-view');
     const trainForm = document.getElementById('train-form');
     const userView = document.getElementById('user-view');
+    const suggestionsContainer = document.getElementById('suggestions-container');
+    const suggestionsList = document.getElementById('suggestions-list');
 
     let context = null;
-    let knowledgeBase = JSON.parse(localStorage.getItem('chatbot-kb')) || {
+    // Initialize knowledge base with default values and ensure they're saved to localStorage
+    let defaultKnowledgeBase = {
         "hello": "Hi there! How can I help you today?",
         "library hours": "The library is open from 9 AM to 9 PM, Monday to Friday. What else would you like to know about the library?",
         "cafeteria": "The main cafeteria is located on the ground floor of the Student Union building."
     };
+    
+    let kb = JSON.parse(localStorage.getItem('chatbot-kb')) || defaultKnowledgeBase;
+    
+    // Ensure default entries are in localStorage
+    let kbUpdated = false;
+    for (const key in defaultKnowledgeBase) {
+        if (!kb.hasOwnProperty(key)) {
+            kb[key] = defaultKnowledgeBase[key];
+            kbUpdated = true;
+        }
+    }
+    
+    if (kbUpdated) {
+        localStorage.setItem('chatbot-kb', JSON.stringify(kb));
+    }
+    
+    let knowledgeBase = kb;
 
     const urlParams = new URLSearchParams(window.location.search);
     const kbTableBody = document.querySelector('#kb-table tbody');
@@ -27,6 +47,50 @@ document.addEventListener('DOMContentLoaded', () => {
     if (aiModeToggle) {
         aiModeToggle.addEventListener('change', () => {
             sessionStorage.setItem('ai-mode-enabled', aiModeToggle.checked);
+        });
+    }
+
+    // Populate suggestions from knowledge base
+    function populateSuggestions() {
+        if (!suggestionsList) return;
+        
+        suggestionsList.innerHTML = '';
+        
+        // Get up to 5 questions from the knowledge base
+        const questions = Object.keys(knowledgeBase);
+        const sampleQuestions = questions.slice(0, 5);
+        
+        sampleQuestions.forEach(question => {
+            const suggestionItem = document.createElement('div');
+            suggestionItem.className = 'suggestion-item';
+            suggestionItem.textContent = question;
+            suggestionItem.addEventListener('click', () => {
+                chatInput.value = question;
+                sendMessage();
+                // Hide suggestions after clicking
+                if (suggestionsContainer) suggestionsContainer.style.display = 'none';
+            });
+            suggestionsList.appendChild(suggestionItem);
+        });
+    }
+
+    // Show suggestions when input is focused
+    if (chatInput) {
+        chatInput.addEventListener('focus', () => {
+            if (suggestionsContainer) {
+                suggestionsContainer.style.display = 'block';
+                populateSuggestions();
+            }
+        });
+        
+        // Hide suggestions when input loses focus (with a small delay to allow clicking suggestions)
+        chatInput.addEventListener('blur', () => {
+            if (suggestionsContainer) {
+                // Use a timeout to allow clicking on suggestions
+                setTimeout(() => {
+                    suggestionsContainer.style.display = 'none';
+                }, 200);
+            }
         });
     }
 
@@ -77,6 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         delete knowledgeBase[key];
                         localStorage.setItem('chatbot-kb', JSON.stringify(knowledgeBase));
                         renderKbTable();
+                        
+                        // Refresh suggestions if they are currently visible
+                        if (suggestionsContainer && suggestionsContainer.style.display !== 'none') {
+                            populateSuggestions();
+                        }
                     }
                 } else if (target.classList.contains('edit-btn')) {
                     const questionInput = document.getElementById('new-question');
@@ -109,6 +178,11 @@ document.addEventListener('DOMContentLoaded', () => {
             trainForm.reset();
             questionInput.disabled = false; // Re-enable after submission
             renderKbTable();
+            
+            // Refresh suggestions if they are currently visible
+            if (suggestionsContainer && suggestionsContainer.style.display !== 'none') {
+                populateSuggestions();
+            }
         });
     }
 
@@ -119,13 +193,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         addMessage(userInput, 'user');
         chatInput.value = '';
-        addMessage("Thinking...", 'bot-status'); // Show typing indicator
+        
+        // Hide suggestions after sending a message
+        if (suggestionsContainer) suggestionsContainer.style.display = 'none';
+        
+        // Show typing indicator with a unique identifier
+        const thinkingMessage = addMessage("Thinking...", 'bot-status');
 
         const botResponse = await getBotResponse(userInput);
 
         // Remove "Thinking..." and add the final response
-        const statusMessage = document.querySelector('.bot-status');
-        if(statusMessage) statusMessage.remove();
+        if(thinkingMessage) thinkingMessage.remove();
 
         addMessage(botResponse, 'bot');
     }
@@ -138,16 +216,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const messageElement = document.createElement('div');
         messageElement.className = `message ${sender}-message`;
 
-        if (sender === 'bot') {
+        if (sender === 'bot' || sender === 'bot-status') {
             messageElement.innerHTML = text; // Use innerHTML for the emoji
 
-            const feedbackContainer = document.createElement('div');
-            feedbackContainer.className = 'feedback-container';
-            feedbackContainer.innerHTML = `
-                <button class="feedback-btn" data-id="${messageId}" data-rating="good">👍</button>
-                <button class="feedback-btn" data-id="${messageId}" data-rating="bad">👎</button>
-            `;
-            messageElement.appendChild(feedbackContainer);
+            // Only add feedback buttons for actual bot responses, not status messages
+            if (sender === 'bot') {
+                const feedbackContainer = document.createElement('div');
+                feedbackContainer.className = 'feedback-container';
+                feedbackContainer.innerHTML = `
+                    <button class="feedback-btn" data-id="${messageId}" data-rating="good">👍</button>
+                    <button class="feedback-btn" data-id="${messageId}" data-rating="bad">👎</button>
+                `;
+                messageElement.appendChild(feedbackContainer);
+            }
         } else {
             messageElement.textContent = text;
         }
@@ -155,6 +236,9 @@ document.addEventListener('DOMContentLoaded', () => {
         messageContainer.appendChild(messageElement);
         chatMessages.appendChild(messageContainer);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Return the message element so it can be removed later
+        return messageContainer;
     }
 
     if (chatMessages) {
@@ -180,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 async function askChatbot(question) {
-    const apiKey = localStorage.getItem('book-tools-api-key'); // Reuse shared key
+    const apiKey = localStorage.getItem('chatbot-api-key'); // Use chatbot specific key
     if (!apiKey) {
         return "Error: AI service is not configured. Please contact an administrator.";
     }
@@ -219,9 +303,10 @@ async function askChatbot(question) {
             return "The library is closed on weekends.";
         }
 
-        // 2. Search local knowledge base
+        // 2. Search local knowledge base (case-insensitive)
         for (const question in knowledgeBase) {
-            if (lowerInput.includes(question)) {
+            const lowerQuestion = question.toLowerCase();
+            if (lowerInput.includes(lowerQuestion) || lowerQuestion.includes(lowerInput)) {
                 logInteraction(question); // Log the matched keyword
                 // Set context based on the question
                 if (question.includes('library')) {

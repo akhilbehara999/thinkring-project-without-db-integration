@@ -14,9 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginMessage = document.getElementById('login-message');
     const adminAccessBtn = document.getElementById('admin-access-btn');
 
-    let failedLoginAttempts = 0;
-    const maxLoginAttempts = 3;
-
+    // Removed failedLoginAttempts and maxLoginAttempts variables
+    
     // --- Interactive Particle Animation ---
     const particleContainer = document.getElementById('particle-container');
     const particles = [];
@@ -92,11 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        if (failedLoginAttempts >= maxLoginAttempts) {
-            loginMessage.textContent = 'Too many failed login attempts. Please try again later.';
-            speak('Too many failed login attempts. Please try again later.');
-            return;
-        }
+        // Removed client-side lockout check
 
         const username = usernameInput.value;
         const password = passwordInput.value;
@@ -132,9 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }, 2000);
             } else {
-                if (authResult.lockout) {
-                    failedLoginAttempts = maxLoginAttempts; // Trigger local lockout UI
-                }
+                // Removed lockout handling
                 loginMessage.textContent = authResult.message;
                 loginMessage.style.color = 'var(--error-color)';
                 speak(authResult.message);

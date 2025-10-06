@@ -179,10 +179,13 @@ function setGlobalAIConfig(apiKey, model = 'openai/gpt-oss-20b:free') {
         localStorage.setItem('book-tools-api-key', apiKey);
         localStorage.setItem('book-tools-model', model);
 
+        // Set configuration for Chatbot module
+        localStorage.setItem('chatbot-api-key', apiKey);
+
         console.log(`✅ Global AI Configuration Set:`);
         console.log(`   API Key: ${apiKey.substring(0, 10)}...`);
         console.log(`   Model: ${model}`);
-        console.log(`   Applied to: Quiz, Code Explainer, Book modules`);
+        console.log(`   Applied to: Quiz, Code Explainer, Book, Chatbot modules`);
 
         return true;
     } catch (error) {
@@ -208,6 +211,10 @@ function getGlobalAIConfig() {
         book: {
             apiKey: localStorage.getItem('book-tools-api-key'),
             model: localStorage.getItem('book-tools-model')
+        },
+        chatbot: {
+            apiKey: localStorage.getItem('book-tools-api-key'),
+            model: 'deepseek/deepseek-r1-0528:free'
         }
     };
 }

@@ -22,9 +22,7 @@ async function initializeUsers() {
                 status: 'active', 
                 passwordHash: await hashPassword('password123', studentSalt),
                 salt: studentSalt,
-                lastLogin: 'N/A',
-                loginAttempts: 0,
-                lockedUntil: null
+                lastLogin: 'N/A'
             },
             { 
                 id: 2, 
@@ -33,9 +31,7 @@ async function initializeUsers() {
                 status: 'active', 
                 passwordHash: await hashPassword('7013432177@akhil', adminSalt),
                 salt: adminSalt,
-                lastLogin: 'N/A',
-                loginAttempts: 0,
-                lockedUntil: null
+                lastLogin: 'N/A'
             },
             { 
                 id: 3, 
@@ -44,9 +40,7 @@ async function initializeUsers() {
                 status: 'suspended', 
                 passwordHash: await hashPassword('password', testUserSalt),
                 salt: testUserSalt,
-                lastLogin: '2025-08-16',
-                loginAttempts: 0,
-                lockedUntil: null
+                lastLogin: '2025-08-16'
             }
         ];
         
@@ -96,8 +90,6 @@ async function migrateUserPasswords(users) {
             }
             
             user.salt = salt;
-            user.loginAttempts = user.loginAttempts || 0;
-            user.lockedUntil = user.lockedUntil || null;
             
             // Remove old password field
             delete user.password;
@@ -142,8 +134,7 @@ async function authenticateUser(username, password) {
     const result = {
         success: false,
         user: null,
-        message: 'Invalid credentials',
-        lockout: false
+        message: 'Invalid credentials'
     };
     
     if (!user) {
@@ -152,14 +143,7 @@ async function authenticateUser(username, password) {
         return result;
     }
     
-    // Check if account is locked
-    if (user.lockedUntil && new Date() < new Date(user.lockedUntil)) {
-        result.message = 'Account temporarily locked due to failed login attempts';
-        result.lockout = true;
-        return result;
-    }
-    
-    // Check if account is suspended
+    // Check if account is suspended (keeping this functionality)
     if (user.status === 'suspended') {
         result.message = 'Account is suspended';
         return result;
@@ -168,23 +152,31 @@ async function authenticateUser(username, password) {
     // Verify password
     let isValidPassword = false;
     
+    // Check for secure password hash first (new method)
     if (user.passwordHash && user.salt) {
         // New secure hash verification
         isValidPassword = await verifyPassword(password, user.passwordHash, user.salt);
-    } else if (user.password) {
-        // Legacy password check (for migration)
-        if (user.role === 'admin') {
+    } 
+    // Check for legacy hashed password (admin with simpleHash)
+    else if (user.password && user.role === 'admin' && !user.passwordHash) {
+        // For admin users, check if it's a simpleHash
+        if (user.password.startsWith('-') || !isNaN(user.password)) {
+            // It's a hashed password
             isValidPassword = simpleHash(password) === user.password;
         } else {
+            // It's a plain text password
             isValidPassword = password === user.password;
         }
     }
+    // Check for plain text password (fallback/default)
+    else if (user.password) {
+        // Direct comparison for plain text passwords
+        isValidPassword = password === user.password;
+    }
     
     if (isValidPassword) {
-        // Successful login - reset failed attempts
+        // Successful login - update last login
         updateUser(user.id, { 
-            loginAttempts: 0, 
-            lockedUntil: null,
             lastLogin: new Date().toLocaleString()
         });
         
@@ -192,22 +184,8 @@ async function authenticateUser(username, password) {
         result.user = { ...user, password: undefined, passwordHash: undefined, salt: undefined };
         result.message = 'Authentication successful';
     } else {
-        // Failed login - increment attempts
-        const newAttempts = (user.loginAttempts || 0) + 1;
-        const maxAttempts = 5;
-        const lockoutDuration = 15 * 60 * 1000; // 15 minutes
-        
-        let updateData = { loginAttempts: newAttempts };
-        
-        if (newAttempts >= maxAttempts) {
-            updateData.lockedUntil = new Date(Date.now() + lockoutDuration).toISOString();
-            result.message = `Account locked for 15 minutes after ${maxAttempts} failed attempts`;
-            result.lockout = true;
-        } else {
-            result.message = `Invalid credentials (${newAttempts}/${maxAttempts} attempts)`;
-        }
-        
-        updateUser(user.id, updateData);
+        // Failed login - just return invalid credentials message
+        result.message = 'Invalid credentials';
     }
     
     return result;
@@ -247,9 +225,7 @@ async function createUser(userData) {
         status: 'active',
         passwordHash: passwordHash,
         salt: salt,
-        lastLogin: 'N/A',
-        loginAttempts: 0,
-        lockedUntil: null
+        lastLogin: 'N/A'
     };
     
     users.push(newUser);
@@ -295,9 +271,7 @@ async function changeUserPassword(userId, currentPassword, newPassword) {
     
     updateUser(userId, {
         passwordHash: passwordHash,
-        salt: salt,
-        loginAttempts: 0,
-        lockedUntil: null
+        salt: salt
     });
     
     return { success: true, message: 'Password changed successfully' };
@@ -313,11 +287,11 @@ async function changeUserPassword(userId, currentPassword, newPassword) {
         console.error('Error initializing user database:', error);
         // Fallback to basic initialization
         const users = JSON.parse(localStorage.getItem('users'));
-        if (!users) {
+        if (!users || users.length === 0) {
             console.log('Using fallback user initialization');
             const basicUsers = [
                 { id: 1, username: 'student', role: 'student', status: 'active', password: 'password123', lastLogin: 'N/A' },
-                { id: 2, username: 'KAB', role: 'admin', status: 'active', password: simpleHash('7013432177@akhil'), lastLogin: 'N/A' },
+                { id: 2, username: 'KAB', role: 'admin', status: 'active', password: '7013432177@akhil', lastLogin: 'N/A' },
                 { id: 3, username: 'testuser', role: 'student', status: 'suspended', password: 'password', lastLogin: '2025-08-16' }
             ];
             localStorage.setItem('users', JSON.stringify(basicUsers));

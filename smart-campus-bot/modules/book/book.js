@@ -14,7 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusDiv = document.getElementById('status');
     const outputTextDiv = document.getElementById('output-text');
 
-
+    // --- Check if admin view is requested ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAdminView = urlParams.get('view') === 'admin';
+    
     // --- Drag and Drop Logic ---
     if (textInput) {
         textInput.addEventListener('dragover', (e) => {
@@ -61,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         statusDiv.textContent = 'File loaded successfully.';
                     })
                     .catch(err => {
-                        console.error('Error parsing .docx file:', err);
                         statusDiv.textContent = 'Error: Could not read .docx file.';
                     });
             };
@@ -117,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     return false;
                 }
             } catch (error) {
-                console.error('AI Test Error:', error);
                 this.updateStatus('error', `Connection failed: ${error.message}`);
                 return false;
             }
@@ -189,7 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    console.error("API Error:", errorData);
                     return `API Error: ${errorData.error?.message || 'Unknown error'}`;
                 }
 
@@ -197,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return data.choices[0].message.content;
 
             } catch (error) {
-                console.error("Network or fetch error:", error);
                 return "Error: Could not connect to the AI service. Check your network connection.";
             }
         }
@@ -205,65 +204,116 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const aiProcessor = new BookAIProcessor();
 
+    // Add a flag to track if an operation is in progress
+    let isOperationInProgress = false;
 
     summarizeBtn.addEventListener('click', async () => {
+        // Prevent multiple simultaneous operations
+        if (isOperationInProgress) {
+            alert('An operation is already in progress. Please wait.');
+            return;
+        }
+        
         const text = textInput.value;
         if (text.trim() === '') {
             alert('Please enter some text.');
             return;
         }
+        
+        isOperationInProgress = true;
         statusDiv.textContent = 'Summarizing...';
         outputTextDiv.textContent = ''; // Clear previous output
 
-        const systemPrompt = "You are an expert text summarizer. Take the user's text and provide a concise summary formatted as a list of bullet points.";
-        const result = await aiProcessor.callOpenRouter(systemPrompt, text);
+        try {
+            const systemPrompt = "You are an expert text summarizer. Take the user's text and provide a concise summary formatted as a list of bullet points.";
+            const result = await aiProcessor.callOpenRouter(systemPrompt, text);
 
-        typewriterEffect(outputTextDiv, result);
-        statusDiv.textContent = 'Summary complete.';
+            // Use direct text assignment instead of typewriter effect to prevent freezing
+            outputTextDiv.textContent = result;
+            statusDiv.textContent = 'Summary complete.';
+        } catch (error) {
+            statusDiv.textContent = 'Error: ' + error.message;
+        } finally {
+            isOperationInProgress = false;
+        }
         
         // Track operation
         trackOperation('summarize');
     });
 
     expandBtn.addEventListener('click', async () => {
+        // Prevent multiple simultaneous operations
+        if (isOperationInProgress) {
+            alert('An operation is already in progress. Please wait.');
+            return;
+        }
+        
         const text = textInput.value;
         if (text.trim() === '') {
             alert('Please enter some text.');
             return;
         }
+        
+        isOperationInProgress = true;
         statusDiv.textContent = 'Expanding...';
         outputTextDiv.textContent = ''; // Clear previous output
 
-        const systemPrompt = "You are a text expander. Take the user's text and elaborate on it, providing a more detailed and descriptive version.";
-        const result = await aiProcessor.callOpenRouter(systemPrompt, text);
+        try {
+            const systemPrompt = "You are a text expander. Take the user's text and elaborate on it, providing a more detailed and descriptive version.";
+            const result = await aiProcessor.callOpenRouter(systemPrompt, text);
 
-        typewriterEffect(outputTextDiv, result);
-        statusDiv.textContent = 'Expansion complete.';
+            // Use direct text assignment instead of typewriter effect to prevent freezing
+            outputTextDiv.textContent = result;
+            statusDiv.textContent = 'Expansion complete.';
+        } catch (error) {
+            statusDiv.textContent = 'Error: ' + error.message;
+        } finally {
+            isOperationInProgress = false;
+        }
         
         // Track operation
         trackOperation('expand');
     });
 
     rephraseBtn.addEventListener('click', async () => {
+        // Prevent multiple simultaneous operations
+        if (isOperationInProgress) {
+            alert('An operation is already in progress. Please wait.');
+            return;
+        }
+        
         const text = textInput.value;
         if (text.trim() === '') {
             alert('Please enter some text.');
             return;
         }
+        
+        isOperationInProgress = true;
         statusDiv.textContent = 'Rephrasing...';
         outputTextDiv.textContent = '';
 
-        const systemPrompt = "You are a rephrasing tool. Rewrite the user's text in a different style or with different vocabulary while preserving the core meaning.";
-        const result = await aiProcessor.callOpenRouter(systemPrompt, text);
+        try {
+            const systemPrompt = "You are a rephrasing tool. Rewrite the user's text in a different style or with different vocabulary while preserving the core meaning.";
+            const result = await aiProcessor.callOpenRouter(systemPrompt, text);
 
-        outputTextDiv.textContent = result;
-        statusDiv.textContent = 'Rephrasing complete.';
+            // Use direct text assignment instead of typewriter effect to prevent freezing
+            outputTextDiv.textContent = result;
+            statusDiv.textContent = 'Rephrasing complete.';
+        } catch (error) {
+            statusDiv.textContent = 'Error: ' + error.message;
+        } finally {
+            isOperationInProgress = false;
+        }
         
         // Track operation
         trackOperation('rephrase');
     });
 
     exportBtn.addEventListener('click', () => {
+        if (isOperationInProgress) {
+            alert('Please wait for the current operation to complete.');
+            return;
+        }
         const outputText = outputTextDiv.textContent;
         if (outputText.trim() === '') {
             alert('There is no output to export.');
@@ -282,6 +332,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     copyBtn.addEventListener('click', () => {
+        if (isOperationInProgress) {
+            alert('Please wait for the current operation to complete.');
+            return;
+        }
         const outputText = outputTextDiv.textContent;
         if (outputText.trim() === '') {
             alert('There is no output to copy.');
@@ -297,12 +351,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 copyBtn.style.backgroundColor = '';
             }, 2000);
         }).catch(err => {
-            console.error('Failed to copy text: ', err);
             alert('Failed to copy text.');
         });
     });
 
     speakBtn.addEventListener('click', () => {
+        if (isOperationInProgress) {
+            alert('Please wait for the current operation to complete.');
+            return;
+        }
         const text = outputTextDiv.textContent || textInput.value;
         if (text.trim() === '') {
             alert('Nothing to speak.');
@@ -317,6 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     stopBtn.addEventListener('click', () => {
+        if (isOperationInProgress) {
+            // We still allow stopping speech even during operations
+        }
         speechSynthesis.cancel();
         statusDiv.textContent = '';
     });
@@ -324,23 +384,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Admin View Logic ---
     
     if (isAdminView) {
-        console.log('Book: Admin view detected, initializing admin interface');
-        
         userView.style.display = 'none';
         adminView.style.display = 'block';
         document.querySelector('.back-link').href = '../../admin.html';
         document.querySelector('h1').textContent = 'Manage Book Tools';
         
-        // Ensure URL parameters persist
-        const currentUrl = new URL(window.location);
-        if (!currentUrl.searchParams.has('view')) {
-            currentUrl.searchParams.set('view', 'admin');
-            window.history.replaceState(null, '', currentUrl.toString());
-        }
-        
         renderAnalytics();
-        
-        console.log('Book: Admin view initialization complete');
+        renderSummariesTable();
+    } else {
+        userView.style.display = 'block';
+        adminView.style.display = 'none';
     }
 
     /**
@@ -437,6 +490,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     saveBtn.addEventListener('click', () => {
+        if (isOperationInProgress) {
+            alert('Please wait for the current operation to complete.');
+            return;
+        }
         const outputText = outputTextDiv.textContent;
         if (outputText.trim() === '') {
             alert('There is no output to save.');
@@ -457,3 +514,37 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Output saved successfully!');
     });
 });
+
+/**
+ * A safer typewriter effect implementation that won't freeze the page
+ * @param {HTMLElement} element The element to display the text in.
+ * @param {string} text The text to be typed.
+ * @param {number} [speed=30] The typing speed in milliseconds.
+ */
+function safeTypewriterEffect(element, text, speed = 30) {
+    if (!element) return;
+    
+    // Clear content first
+    element.textContent = '';
+    
+    // If text is empty, return immediately
+    if (!text || text.length === 0) {
+        return;
+    }
+    
+    let i = 0;
+    
+    // Use setTimeout instead of setInterval for better control
+    function typeCharacter() {
+        if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+            
+            // Schedule next character with setTimeout
+            setTimeout(typeCharacter, speed);
+        }
+    }
+    
+    // Start typing
+    typeCharacter();
+}

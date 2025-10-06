@@ -1,1 +1,0 @@
-# thinkring-project

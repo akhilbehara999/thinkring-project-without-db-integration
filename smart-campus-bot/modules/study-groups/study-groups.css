@@ -340,6 +340,27 @@ main::before {
     overflow: hidden;
 }
 
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#current-group-name {
+    color: #FF8C00;
+    margin: 0;
+    flex: 1;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#current-group-name::before {
+    content: '💬';
+}
+
 #group-chat-view::before {
     content: '';
     position: absolute;

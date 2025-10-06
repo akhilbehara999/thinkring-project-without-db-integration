@@ -1,116 +1,105 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Hide loader and show content
-    const loader = document.getElementById('loader-wrapper');
-    if (loader) {
-        loader.classList.add('hidden');
-    }
-    document.body.classList.add('loaded');
-    
-    // Check for session token
-    if (!localStorage.getItem('sessionToken')) {
-        window.location.href = 'index.html';
-    }
+// Dashboard Module Navigation Handler
 
-    const logoutBtn = document.getElementById('logout-btn');
-    logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('sessionToken');
-        localStorage.removeItem('userRole');
-        window.location.href = 'index.html';
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize dashboard functionality
+    initDashboard();
+});
 
+function initDashboard() {
+    // Add click event listeners to all module cards
     const moduleCards = document.querySelectorAll('.module-card');
     moduleCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const module = card.dataset.module;
-            
-            // Check if current user is admin and preserve admin context
-            const userRole = localStorage.getItem('userRole');
-            const isAdmin = userRole === 'admin';
-            
-            let targetUrl = `modules/${module}/${module}.html`;
-            if (isAdmin) {
-                targetUrl += '?view=admin';
-            }
-            
-            window.location.href = targetUrl;
-        });
-
-        // 3D Holographic Tilt Effect
-        card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-
-            const rotateX = ((y - centerY) / centerY) * -10; // Max rotation 10deg
-            const rotateY = ((x - centerX) / centerX) * 10;
-
-            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
-        });
-
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
-        });
-
-        card.addEventListener('keydown', (e) => {
+        card.addEventListener('click', handleModuleClick);
+        card.addEventListener('keydown', function(e) {
+            // Allow activation with Enter or Space keys for accessibility
             if (e.key === 'Enter' || e.key === ' ') {
-                card.click();
+                e.preventDefault();
+                handleModuleClick.call(this, e);
             }
         });
     });
-
-    // Voice commands
-    if ('webkitSpeechRecognition' in window) {
-        const voiceEnabled = localStorage.getItem('voice-enabled') !== 'false';
-        if (!voiceEnabled) {
-            console.log('Voice commands disabled by user setting.');
-            return;
-        }
-
-        recognition = new webkitSpeechRecognition(); // Use global var
-        recognition.continuous = true;
-        recognition.interimResults = false;
-
-        recognition.onstart = () => {
-            console.log('Voice recognition started.');
-            speak("I'm listening.");
-        };
-
-        recognition.onresult = (event) => {
-            const last = event.results.length - 1;
-            const command = event.results[last][0].transcript.trim().toLowerCase();
-            console.log('Voice command:', command);
-
-            if (command.startsWith('open')) {
-                const moduleName = command.substring(5).replace(/ /g, '-');
-                const card = document.querySelector(`.module-card[data-module="${moduleName}"]`);
-                if (card) {
-                    speak(`Opening ${moduleName.replace(/-/g, ' ')}.`);
-                    card.click();
-                } else {
-                    speak(`Module ${moduleName.replace(/-/g, ' ')} not found.`);
-                }
-            } else if (command === 'stop listening') {
-                speak("Going back to sleep.");
-                recognition.stop();
-            }
-        };
-
-        recognition.onerror = (event) => {
-            console.error('Voice recognition error:', event.error);
-        };
-
-        recognition.onend = () => {
-            console.log('Voice recognition ended.');
-            // Don't automatically restart, wait for wake word again.
-        };
-
-        // Listen for wake word instead of starting immediately
-        listenForWakeWord(startVoiceCommands);
-
-    } else {
-        console.log('Speech recognition not supported in this browser.');
+    
+    // Add logout functionality
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
     }
-});
+    
+    console.log('Dashboard initialized with', moduleCards.length, 'modules');
+}
+
+function handleModuleClick(event) {
+    // Get the module name from the data attribute
+    const moduleCard = event.currentTarget;
+    const moduleName = moduleCard.getAttribute('data-module');
+    
+    if (!moduleName) {
+        console.error('Module name not found in data-module attribute');
+        return;
+    }
+    
+    // Add visual feedback
+    moduleCard.style.transform = 'scale(0.95)';
+    moduleCard.style.opacity = '0.7';
+    
+    // Navigate to the module after a short delay for visual feedback
+    setTimeout(() => {
+        navigateToModule(moduleName);
+    }, 150);
+}
+
+function navigateToModule(moduleName) {
+    // Map module names to their respective HTML files
+    const modulePaths = {
+        'lost-found': 'modules/lost-found/lost-found.html',
+        'attendance': 'modules/attendance/attendance.html',
+        'quiz': 'modules/quiz/quiz.html',
+        'book': 'modules/book/book.html',
+        'code-explainer': 'modules/code-explainer/code-explainer.html',
+        'storage': 'modules/storage/storage.html',
+        'chatbot': 'modules/chatbot/chatbot.html',
+        'study-groups': 'modules/study-groups/study-groups.html'
+    };
+    
+    // Get the path for the requested module
+    const modulePath = modulePaths[moduleName];
+    
+    if (!modulePath) {
+        console.error('Module path not found for:', moduleName);
+        // Show error to user
+        alert('Sorry, this module is not available.');
+        // Reset visual feedback
+        resetModuleCard(moduleName);
+        return;
+    }
+    
+    // Navigate to the module
+    console.log('Navigating to module:', moduleName);
+    window.location.href = modulePath;
+}
+
+function resetModuleCard(moduleName) {
+    const moduleCard = document.querySelector(`.module-card[data-module="${moduleName}"]`);
+    if (moduleCard) {
+        moduleCard.style.transform = '';
+        moduleCard.style.opacity = '';
+    }
+}
+
+function handleLogout() {
+    // Confirm logout
+    if (confirm('Are you sure you want to logout?')) {
+        // Clear any session data
+        localStorage.removeItem('user-session');
+        sessionStorage.clear();
+        
+        // Redirect to login page
+        window.location.href = 'index.html';
+    }
+}
+
+// Export functions for global access if needed
+window.dashboard = {
+    navigateToModule,
+    handleLogout
+};
